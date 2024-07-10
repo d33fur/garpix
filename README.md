@@ -1,1 +1,1 @@
-# garpix
+make all
