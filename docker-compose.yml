@@ -38,6 +38,9 @@ services:
       - ./frontend:/app
     depends_on:
       - garpix_backend
+    networks:
+      - backend
+
 
 networks:
   backend:
