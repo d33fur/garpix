@@ -26,11 +26,12 @@ def on_change_uploaded_file():
             binary_data = convert_docx_to_pdf(f.name)
     st.session_state.uploaded_file = binary_data
 
-def get_standards() -> list[str]:
-    ans = requests.get(url="http://127.0.0.1:8501/list").text[1:-1]
-    list_standards = list()
-    for i in ans.split(","):
-        list_standards.append(i.strip()[1:-1])
+def get_standards():
+    ans = requests.get(url="http://garpix_backend:8000/list").text
+    list_standards = []
+    for i in ans[1:-1].split(","):
+        if i.strip():
+            list_standards.append(i.strip())
     return list_standards
 
 def on_change_selectbox():
@@ -42,7 +43,7 @@ def on_change_selectbox():
     files = {
         "file": st.session_state.uploaded_file
     }
-    response = requests.post(url="http://127.0.0.1:8501/check", files=files, headers=headers)
+    response = requests.post(url="http://garpix_backend:8000/list", files=files, headers=headers)
     if response.status_code == 200:
         st.session_state.new_file = response.content
 
@@ -61,7 +62,7 @@ def main():
             st.header("Выберите ГОСТ")
             st.selectbox(label = "ГОСТ",options=list_standards, label_visibility="hidden", on_change=on_change_selectbox, key="standard", index=None)
     
-    tab1, tab2 = st.tabs(["Оригинал", "Исправленный"])
+    tab1, tab2 = st.tabs(["Оригинальный файл", "Проверенный файл"])
     with tab1:
         if uploaded_file is not None and 'uploaded_file' in st.session_state:
             pdf_viewer(input=st.session_state.uploaded_file, width=width, height=height if height != -1 else None)
