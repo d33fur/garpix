@@ -59,7 +59,7 @@ def main():
         list_standards = get_standards()
         if uploaded_file is not None:
             st.header("Выберите ГОСТ")
-            element = st.selectbox(label = "ГОСТ",options=["1","2","3"], label_visibility="hidden", key="standard", index=None)
+            element = st.selectbox(label = "ГОСТ",options=list_standards, label_visibility="hidden", key="standard", index=None)
             if element is not None:
                 st.button("Отправить на проверку", on_click=on_change_selectbox)
     
