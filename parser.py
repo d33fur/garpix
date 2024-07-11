@@ -52,7 +52,7 @@ def get_margins_and_paragraphs(pdf_path):
                 if page.width - x1 < page_dict['margins']['right']:
                     page_dict['margins']['right'] = page.width - x1
 
-            # Вторичный проход для определения абзацев
+            # Вторичный проход для определения абзацев (отступ сверху)
             current_paragraph = []
             previous_bottom = None
             for line in text_lines:
@@ -71,6 +71,26 @@ def get_margins_and_paragraphs(pdf_path):
 
             if current_paragraph:
                 page_dict['paragraphs'].append(current_paragraph)
+
+
+            # # Вторичный проход для определения абзацев (красная строка)
+            # current_paragraph = []
+            # prev_text = ""
+            # for line in text_lines:
+            #     x0, y0, x1, y1 = line['x0'], line['top'], line['x1'], line['bottom']
+            #
+            #     # Проверка на начало нового абзаца
+            #     if x0 > page_dict['margins']['left']:
+            #         if current_paragraph:
+            #             page_dict['paragraphs'].append(current_paragraph)
+            #             current_paragraph = []
+            #         current_paragraph.append(line)
+            #     else:
+            #         current_paragraph.append(line)
+            #
+            # # Добавляем последний абзац, если он есть
+            # if current_paragraph:
+            #     page_dict['paragraphs'].append(current_paragraph)
 
             # Конвертация отступов в сантиметры
             for key in page_dict['margins']:
