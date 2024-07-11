@@ -27,7 +27,7 @@ def on_change_uploaded_file():
     st.session_state.uploaded_file = binary_data
 
 def get_standards() -> list[str]:
-    ans = requests.get(url="http://127.0.0.1:8000/list").text[1:-1]
+    ans = requests.get(url="http://127.0.0.1:8501/list").text[1:-1]
     list_standards = list()
     for i in ans.split(","):
         list_standards.append(i.strip()[1:-1])
@@ -42,11 +42,13 @@ def on_change_selectbox():
     files = {
         "file": st.session_state.uploaded_file
     }
-    response = requests.post(url="http://127.0.0.1:8000/check", files=files, headers=headers)
-    print(response.status_code)
+    response = requests.post(url="http://127.0.0.1:8501/check", files=files, headers=headers)
+    if response.status_code == 200:
+        st.session_state.new_file = response.content
 
 
 def main():
+    st.set_page_config(layout="wide")
     st.title('Система автоматизированного нормоконтроля')
 
     with st.sidebar:
@@ -55,7 +57,7 @@ def main():
         width = st.slider(label="Ширина", min_value=100, max_value=1000, value=700)
         height = st.slider(label="Высота", min_value=-1, max_value=1000, value=-1)
         list_standards = get_standards()
-        if "uploaded_file" in st.session_state:
+        if uploaded_file is not None:
             st.header("Выберите ГОСТ")
             st.selectbox(label = "ГОСТ",options=list_standards, label_visibility="hidden", on_change=on_change_selectbox, key="standard", index=None)
     
@@ -65,8 +67,12 @@ def main():
             pdf_viewer(input=st.session_state.uploaded_file, width=width, height=height if height != -1 else None)
 
     with tab2:
-        ## add new file from backend
-        pass
+        col1, col2 = st.columns([0.7, 0.3])
+        with col1:
+            if uploaded_file is not None and 'new_file' in st.session_state:
+                pdf_viewer(input=st.session_state.new_file, width=width, height=height if height != -1 else None, key="t")
+        with col2:
+            st.subheader("Информация об ошибках")
 
 if __name__ == "__main__":
     main()
