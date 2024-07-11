@@ -35,16 +35,15 @@ def get_standards():
     return list_standards
 
 def on_change_selectbox():
-    # if  st.session_state.uploaded_file is None:
-    #     return
     headers = {
         "standart": st.session_state.standard
     }
     files = {
         "file": st.session_state.uploaded_file
     }
-    response = requests.post(url="http://garpix_backend:8000/list", files=files, headers=headers)
+    response = requests.post(url="http://garpix_backend:8000/check", files=files, headers=headers)
     if response.status_code == 200:
+        print("YES")
         st.session_state.new_file = response.content
 
 
@@ -60,7 +59,9 @@ def main():
         list_standards = get_standards()
         if uploaded_file is not None:
             st.header("Выберите ГОСТ")
-            st.selectbox(label = "ГОСТ",options=list_standards, label_visibility="hidden", on_change=on_change_selectbox, key="standard", index=None)
+            element = st.selectbox(label = "ГОСТ",options=["1","2","3"], label_visibility="hidden", key="standard", index=None)
+            if element is not None:
+                st.button("Отправить на проверку", on_click=on_change_selectbox)
     
     tab1, tab2 = st.tabs(["Оригинальный файл", "Проверенный файл"])
     with tab1:
@@ -73,7 +74,12 @@ def main():
             if uploaded_file is not None and 'new_file' in st.session_state:
                 pdf_viewer(input=st.session_state.new_file, width=width, height=height if height != -1 else None, key="t")
         with col2:
-            st.subheader("Информация об ошибках")
+            with st.popover("Результат"):
+                st.text("Документ соответствуют ГОСТу")
+            blank_lines = "&nbsp;  \n&nbsp;  \n&nbsp;  \n&nbsp;"
+            st.markdown(blank_lines)
+            with st.popover("Информация об ошибках"):
+                st.text("Ошибка на 3 странице")
 
 if __name__ == "__main__":
     main()
