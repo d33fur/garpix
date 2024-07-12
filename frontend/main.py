@@ -44,7 +44,6 @@ def on_change_selectbox():
     }
     response = requests.post(url="http://garpix_backend:8000/check", files=files, headers=headers)
     if response.status_code == 200:
-        print("YES")
         st.session_state.new_file = response.content
 
 
@@ -68,13 +67,20 @@ def main():
     if uploaded_file is not None and 'uploaded_file' in st.session_state:
             col1, col2 = st.columns([0.5, 0.5])
             with col1:
-                pdf_viewer(input=st.session_state.uploaded_file, width=width, height=height if height != -1 else None)
+                pdf_viewer(input=st.session_state.uploaded_file, width=width, height=height if height != -1 else None, render_text=True)
             with col2:
                 with st.popover("Результат"):
                     st.text("Документ соответствуют ГОСТу")
                 blank_lines = "&nbsp;  \n&nbsp;  \n&nbsp;  \n&nbsp;"
                 st.markdown(blank_lines)
                 with st.popover("Информация об ошибках"):
+                    style = """<style>
+                    #bui7 > div > div > div > div > div > div > div{ 
+                    white-space: normal; 
+                    word-wrap: break-word;}
+                    </style>
+                    """
+                    st.markdown(style, unsafe_allow_html=True)
                     st.text("Ошибка на 3 странице")
                 float_parent()
 
