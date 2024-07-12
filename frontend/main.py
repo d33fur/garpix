@@ -5,6 +5,7 @@ import os
 import tempfile
 from streamlit_pdf_viewer import pdf_viewer
 from docx2pdf import convert
+from streamlit_float import *
 
 
 def convert_docx_to_pdf(file_docx):
@@ -48,8 +49,9 @@ def on_change_selectbox():
 
 
 def main():
-    st.set_page_config(layout="wide")
+    st.set_page_config(layout="wide", page_icon='📄')
     st.title('Система автоматизированного нормоконтроля')
+    float_init()
 
     with st.sidebar:
         uploaded_file = st.file_uploader("Загрузите документ", type=['docx', 'pdf'], key='file', on_change=on_change_uploaded_file)
@@ -63,23 +65,18 @@ def main():
             if element is not None:
                 st.button("Отправить на проверку", on_click=on_change_selectbox)
     
-    tab1, tab2 = st.tabs(["Оригинальный файл", "Проверенный файл"])
-    with tab1:
-        if uploaded_file is not None and 'uploaded_file' in st.session_state:
-            pdf_viewer(input=st.session_state.uploaded_file, width=width, height=height if height != -1 else None)
-
-    with tab2:
-        col1, col2 = st.columns([0.7, 0.3])
-        with col1:
-            if uploaded_file is not None and 'new_file' in st.session_state:
-                pdf_viewer(input=st.session_state.new_file, width=width, height=height if height != -1 else None, key="t")
-        with col2:
-            with st.popover("Результат"):
-                st.text("Документ соответствуют ГОСТу")
-            blank_lines = "&nbsp;  \n&nbsp;  \n&nbsp;  \n&nbsp;"
-            st.markdown(blank_lines)
-            with st.popover("Информация об ошибках"):
-                st.text("Ошибка на 3 странице")
+    if uploaded_file is not None and 'uploaded_file' in st.session_state:
+            col1, col2 = st.columns([0.5, 0.5])
+            with col1:
+                pdf_viewer(input=st.session_state.uploaded_file, width=width, height=height if height != -1 else None)
+            with col2:
+                with st.popover("Результат"):
+                    st.text("Документ соответствуют ГОСТу")
+                blank_lines = "&nbsp;  \n&nbsp;  \n&nbsp;  \n&nbsp;"
+                st.markdown(blank_lines)
+                with st.popover("Информация об ошибках"):
+                    st.text("Ошибка на 3 странице")
+                float_parent()
 
 if __name__ == "__main__":
     main()
