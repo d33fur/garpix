@@ -1,5 +1,4 @@
 import pdfplumber
-import re
 
 def points_to_cm(points):
     inches = points / 72 
@@ -19,9 +18,6 @@ def get_expected_line_spacing(line_height):
     expected_spacing = line_height * 1.5 * lowercase_height_ratio
     return expected_spacing
 
-def clean_font_name(fontname):
-    return re.sub(r'^[A-Z]{6}\+', '', fontname)
-
 def get_margins_and_paragraphs(pdf_path):
     with pdfplumber.open(pdf_path) as pdf:
         page_data = []
@@ -39,12 +35,11 @@ def get_margins_and_paragraphs(pdf_path):
                 'paragraphs': []
             }
 
-            # Извлечение текста с координатами строк и шрифтом
-            text_lines = page.extract_words(extra_attrs=["fontname"])
+            # Извлечение текста с координатами строк
+            text_lines = page.extract_text_lines()
 
             # Первичный проход для определения общего левого отступа
             for line in text_lines:
-                line['fontname'] = clean_font_name(line['fontname'])  # Очистка имени шрифта
                 x0, y0, x1, y1 = line['x0'], line['top'], line['x1'], line['bottom']
 
                 # Обновление отступов
@@ -60,25 +55,23 @@ def get_margins_and_paragraphs(pdf_path):
             # Вторичный проход для определения абзацев (отступ сверху)
             current_paragraph = []
             previous_bottom = None
-            previous_font = None
             for line in text_lines:
                 x0, y0, x1, y1 = line['x0'], line['top'], line['x1'], line['bottom']
-                fontname = line['fontname']
 
                 line_height = y1 - y0
                 expected_spacing = get_expected_line_spacing(line_height)
 
-                if previous_bottom is None or y0 - previous_bottom > expected_spacing or fontname != previous_font:
+                if previous_bottom is None or y0 - previous_bottom > expected_spacing:
                     if current_paragraph:
                         page_dict['paragraphs'].append(current_paragraph)
                     current_paragraph = []
-
+                
                 current_paragraph.append(line)
                 previous_bottom = y1
-                previous_font = fontname
 
             if current_paragraph:
                 page_dict['paragraphs'].append(current_paragraph)
+
 
             # # Вторичный проход для определения абзацев (красная строка)
             # current_paragraph = []
@@ -107,38 +100,12 @@ def get_margins_and_paragraphs(pdf_path):
         
         return page_data
 
-def format_paragraphs(paragraphs):
-    formatted_paragraphs = []
-    for paragraph in paragraphs:
-        current_font = None
-        current_text = []
-        formatted_paragraph = []
-
-        for line in paragraph:
-            fontname = line.get('fontname')
-            text = line['text']
-
-            if fontname != current_font:
-                if current_font is not None:
-                    formatted_paragraph.append((current_font, ' '.join(current_text)))
-                current_font = fontname
-                current_text = [text]
-            else:
-                current_text.append(text)
-
-        if current_text:
-            formatted_paragraph.append((current_font, ' '.join(current_text)))
-
-        formatted_paragraphs.append(formatted_paragraph)
-
-    return formatted_paragraphs
-
 # Пример использования
 pdf_path = "path/to/pdf"
 page_data = get_margins_and_paragraphs(pdf_path)
 
 # Форматирование результатов
-for page in page_data:
+'''for page in page_data:
     print(f"Page {page['page_num'] + 1}:")
     print(f"  Top Margin: {page['margins']['top']:.2f} cm")
     print(f"  Bottom Margin: {page['margins']['bottom']:.2f} cm")
@@ -146,9 +113,45 @@ for page in page_data:
     print(f"  Right Margin: {page['margins']['right']:.2f} cm")
 
     print("  Paragraphs:")
-    formatted_paragraphs = format_paragraphs(page['paragraphs'])
-    for i, formatted_paragraph in enumerate(formatted_paragraphs, 1):
-        print(f"    Paragraph {i}:")
-        for font, text in formatted_paragraph:
-            print(f"      {font} - \"{text}\"")
-    print()
+    for paragraph in page['paragraphs']:
+        paragraph_text = " ".join([line['text'] for line in paragraph])
+        first_line = paragraph[0]
+        first_line_x0_cm = points_to_cm(first_line['x0'])
+        first_line_y0_cm = points_to_cm(first_line['top'])
+        print(f"    Paragraph: {paragraph_text}")
+        print(f"    First line coordinates (cm): x0={first_line_x0_cm:.2f}, y0={first_line_y0_cm:.2f}")
+    print()'''
+
+def format_font(fontname):
+    for n,char in enumerate(fontname):
+        if char == '+':
+            return fontname[n + 1:]
+    return fontname
+
+def get_font_data(page_data):
+    font_data = {}
+    previous_font = None
+    for page_num,page in enumerate(page_data):
+        for paragraph_num,paragraph in enumerate(page['paragraphs']):
+            for line_num,line in enumerate(paragraph):
+                for char_num,char in enumerate(line['chars']):
+                   current_font = format_font(char['fontname'])
+                   cur_pos = [page_num,paragraph_num,line_num,char_num]
+                   next_pos = [page_num,paragraph_num,line_num,char_num + 1]
+                   if current_font != previous_font:
+                       if previous_font is not None:
+                           font_data[previous_font][-1][-1] = cur_pos
+                       if current_font in font_data:
+                           font_data[current_font].append([cur_pos,next_pos])   
+                       else:
+                           font_data[current_font] = [[cur_pos,next_pos]] 
+                       previous_font = current_font
+                   else:
+                       font_data[current_font][-1][-1] = next_pos
+                          
+    return font_data
+
+font_data = get_font_data(page_data)
+for font in font_data:
+    print(font)
+    print(font_data[font])
