@@ -1,4 +1,5 @@
 import pdfplumber
+import re
 
 def points_to_cm(points):
     inches = points / 72 
@@ -18,6 +19,9 @@ def get_expected_line_spacing(line_height):
     expected_spacing = line_height * 1.5 * lowercase_height_ratio
     return expected_spacing
 
+def clean_font_name(fontname):
+    return re.sub(r'^[A-Z]{6}\+', '', fontname)
+
 def get_margins_and_paragraphs(pdf_path):
     with pdfplumber.open(pdf_path) as pdf:
         page_data = []
@@ -35,11 +39,15 @@ def get_margins_and_paragraphs(pdf_path):
                 'paragraphs': []
             }
 
+            # Извлечение текста с координатами строк и шрифтом
             text_lines = page.extract_words(extra_attrs=["fontname"])
 
+            # Первичный проход для определения общего левого отступа
             for line in text_lines:
+                line['fontname'] = clean_font_name(line['fontname'])  # Очистка имени шрифта
                 x0, y0, x1, y1 = line['x0'], line['top'], line['x1'], line['bottom']
 
+                # Обновление отступов
                 if y0 < page_dict['margins']['top']:
                     page_dict['margins']['top'] = y0
                 if page.height - y1 < page_dict['margins']['bottom'] and page.height - y1 > 0:
@@ -49,6 +57,7 @@ def get_margins_and_paragraphs(pdf_path):
                 if page.width - x1 < page_dict['margins']['right']:
                     page_dict['margins']['right'] = page.width - x1
 
+            # Вторичный проход для определения абзацев (отступ сверху)
             current_paragraph = []
             previous_bottom = None
             previous_font = None
