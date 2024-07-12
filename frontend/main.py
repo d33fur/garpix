@@ -32,7 +32,7 @@ def get_standards():
     list_standards = []
     for i in ans[1:-1].split(","):
         if i.strip():
-            list_standards.append(i.strip())
+            list_standards.append(i.strip()[1:-1])
     return list_standards
 
 def on_change_selectbox():
@@ -44,7 +44,7 @@ def on_change_selectbox():
     }
     response = requests.post(url="http://garpix_backend:8000/check", files=files, headers=headers)
     if response.status_code == 200:
-        st.session_state.new_file = response.content
+        st.session_state.new_file = response.text
 
 
 def main():
@@ -74,14 +74,18 @@ def main():
                 blank_lines = "&nbsp;  \n&nbsp;  \n&nbsp;  \n&nbsp;"
                 st.markdown(blank_lines)
                 with st.popover("Информация об ошибках"):
-                    style = """<style>
-                    #bui7 > div > div > div > div > div > div > div{ 
-                    white-space: normal; 
-                    word-wrap: break-word;}
-                    </style>
-                    """
-                    st.markdown(style, unsafe_allow_html=True)
-                    st.text("Ошибка на 3 странице")
+                    if 'new_file' in st.session_state:
+                        style = """<style>
+                        #bui8 > div > div > div > div > div:nth-child(2) > div > div{ 
+                        white-space: normal; 
+                        word-wrap: break-word;}
+                        #bui7 > div > div > div > div > div:nth-child(2) > div > div{ 
+                        white-space: normal; 
+                        word-wrap: break-word;}
+                        </style>
+                        """
+                        st.markdown(style, unsafe_allow_html=True)
+                        st.text(st.session_state.new_file)
                 float_parent()
 
 if __name__ == "__main__":

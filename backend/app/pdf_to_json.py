@@ -69,7 +69,7 @@ class ExtractTextInfoFromPDF:
                 file.write(stream_asset.get_input_stream())
                 
             self.extract_zip_file(output_file_path, "./docs")
-            self.read_json_data("./docs/extract_1/structuredData.json")
+            self.read_json_data("./docs/structuredData.json")
                 
             
 
