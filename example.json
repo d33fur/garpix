@@ -65,9 +65,9 @@
         "word": "таблица",
         "number": true
       },
-      "title_position": "above_left",
+      "title_position": ["top", "left"],
       "title_format": {
-        "capitalize_first_letter": true,
+        "capitalization": "first_letter",
         "end_with_period": false,
         "line_spacing": "1"
       },
