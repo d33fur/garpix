@@ -1,14 +1,16 @@
-import os
 from fastapi import FastAPI, HTTPException, UploadFile, File, Header, Depends
 from sqlalchemy.orm import Session
-from fastapi.responses import JSONResponse, FileResponse
 from . import models, schemas
 from .database import SessionLocal, engine
+from .pdf_to_json import ExtractTextInfoFromPDF
 from dotenv import load_dotenv
+import os
 
 load_dotenv()
 
-models.Base.metadata.create_all(bind=engine)
+CURRENT_PDF_JSON = None
+CURRENT_STANDARD_JSON = None
+CURRENT_ERRORS_JSON = None
 
 app = FastAPI()
 
@@ -20,19 +22,28 @@ def get_db():
         db.close()
 
 @app.get("/list", response_model=list[str])
-def read_standarts(db: Session = Depends(get_db)):
-    standarts = db.query(models.Standart).all()
-    return [standart.standart_name for standart in standarts]
+def read_standards(db: Session = Depends(get_db)):
+    standards = db.query(models.Standart).all()
+    return [standard.standart_name for standard in standards]
 
 @app.post("/check")
 async def check_file(standart: str = Header(...), file: UploadFile = File(...), db: Session = Depends(get_db)):
-    standart = db.query(models.Standart).filter(models.Standart.standart_name == standart).first()
-    if not standart:
-        raise HTTPException(status_code=404, detail="Standart not found")
+    print(f"Received standard header: {standart}")
+    standard = db.query(models.Standart).filter(models.Standart.standart_name == standart).first()
+    if not standard:
+        raise HTTPException(status_code=400, detail="Standard not found")
+    
+    print(f"Found standard: {standard.standart_name}")
+    
+    CURRENT_STANDARD_JSON = standard.standart_json
 
-    file_location = f"temp/{file.filename}"
+    file_location = f"docs/{file.filename}"
     os.makedirs(os.path.dirname(file_location), exist_ok=True)
+
     with open(file_location, "wb") as buffer:
         buffer.write(await file.read())
 
-    return FileResponse(path=file_location, media_type=file.content_type, filename=file.filename)
+    parser = ExtractTextInfoFromPDF(file_location)
+    CURRENT_PDF_JSON = parser.get_json_data()
+    
+    return CURRENT_PDF_JSON

@@ -7,7 +7,7 @@ services:
     env_file: 
       - backend/.env
     volumes:
-      - ./backend/database/:/docker-entrypoint-initdb.d
+      - ./backend/database/init/:/docker-entrypoint-initdb.d
       - ./backend/database/data:/var/lib/postgresql/data
     restart: always
     networks:
