@@ -5,3 +5,5 @@ pydantic
 psycopg2-binary
 python-dotenv
 python-multipart
+pdfservices-sdk==4.0.0
+pypandoc

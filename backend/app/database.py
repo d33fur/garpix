@@ -6,10 +6,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_USER = os.getenv("DBUSER")
-DATABASE_PASSWORD = os.getenv("DBPASSWORD")
+DATABASE_USER = os.getenv("POSTGRES_USER")
+DATABASE_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 DATABASE_HOST = os.getenv("DBHOST")
-DATABASE_NAME = os.getenv("DBNAME")
+DATABASE_NAME = os.getenv("POSTGRES_DB")
 DATABASE_PORT = os.getenv("DBPORT")
 
 DATABASE_URL = f"postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_NAME}"
