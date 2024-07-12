@@ -9,13 +9,13 @@
     },
     "font": {
       "color": "black",
-      "size": "12pt",
-      "type": "Times New Roman",
+      "min_size": "12",
+      "default_type": "Times New Roman",
       "bold": {
-        "apply_to": ["section_titles", "subsection_titles", "structural_element_titles"]
+        ["section_titles"]
       },
       "italic": {
-        "apply_to": ["objects", "terms_in_latin"]
+        ["objects", "terms_in_latin"]
       }
     },
     "page_numbering": {
