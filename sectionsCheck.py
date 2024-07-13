@@ -9,56 +9,47 @@ def check_required_headers(json_file):
     pattern = re.compile(r'//Document/H1(?:\[(\d+)\])?')
 
     required_headers = [
-        "содержание",
-        "термины и определения",
-        "перечень сокращений и обозначений",
-        "введение",
-        "заключение",
-        "список использованных источников",
-        "приложения"
+        "СОДЕРЖАНИЕ",
+        "ТЕРМИНЫ И ОПРЕДЕЛЕНИЯ",
+        "ПЕРЕЧЕНЬ СОКРАЩЕНИЙ И ОБОЗНАЧЕНИЙ",
+        "ВВЕДЕНИЕ",
+        "ЗАКЛЮЧЕНИЕ",
+        "СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ",
+        "ПРИЛОЖЕНИЯ"
     ]
 
-    errors = []
-    isCorrectOrder = False
-
     found_headers = []
-    found_headers_lower = set()
+    missing_headers = []
 
+    # Check for found headers and determine the contents page
+    contents_page = None
     for element in elements:
         match = pattern.search(element['Path'])
         if match:
             header_text = element['Text'].strip()
+            found_headers.append(header_text)
+            if header_text.lower() == "содержание":
+                contents_page = element['Page'] + 1  # Adjust page number to start from 1
 
-            # check required
-            if header_text.lower() in found_headers_lower:
-                if header_text not in errors:
-                    errors.append(header_text)
-            elif header_text.lower() in [header.lower() for header in required_headers]:
-                found_headers.append(header_text)
-                found_headers_lower.add(header_text.lower())
+    # Check for missing headers
+    for header in required_headers:
+        if header.lower() not in [found_header.lower() for found_header in found_headers]:
+            # Find the first occurrence of the header in the elements list
+            page_number = None
+            for element in elements:
+                if 'Text' in element and element['Path'].startswith("//Document/H1"):
+                    header_text = element['Text'].strip()
+                    if header_text.lower() == header.lower():
+                        page_number = element['Page'] + 1  # Adjust page number to start from 1
+                        break
 
-    # order
-    correct_order = True
-    for i in range(len(found_headers) - 1):
-        current_header = found_headers[i]
-        next_header = found_headers[i + 1]
-        current_index = required_headers.index(current_header.lower())
-        next_index = required_headers.index(next_header.lower())
-        if current_index > next_index:
-            correct_order = False
-            break
+            missing_headers.append({
+                'error_desc': 'Missing required header',
+                'error_page': contents_page if contents_page else page_number,
+                'error_text': header
+            })
 
-    if correct_order:
-        isCorrectOrder = True
-
-    missing_headers = [header for header in required_headers if header.lower() not in found_headers_lower]
-
-    if missing_headers:
-        for header in required_headers:
-            if header.lower() in missing_headers:
-                errors.append(header)
-
-    return errors
+    return missing_headers
 
 def check_format(json_file):
     with open(json_file, 'r', encoding='utf-8') as f:
@@ -66,18 +57,22 @@ def check_format(json_file):
 
     elements = data['elements']
 
-    errors_ending_with_dot = []
-    errors_not_lowercase = []
-    errors_containing_underline = []
-    errors_no_paragraph_indent = []
-    errors_not_bold_font = []
-    errors_wrong_font = []
-    errors_wrong_font_size = []
+    errors = []
+
+    required_headers = [
+        "СОДЕРЖАНИЕ",
+        "ТЕРМИНЫ И ОПРЕДЕЛЕНИЯ",
+        "ПЕРЕЧЕНЬ СОКРАЩЕНИЙ И ОБОЗНАЧЕНИЙ",
+        "ВВЕДЕНИЕ",
+        "ЗАКЛЮЧЕНИЕ",
+        "СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ",
+        "ПРИЛОЖЕНИЯ"
+    ]
 
     for element in elements:
         if 'Text' in element and element['Path'].startswith("//Document/H1"):
             header_text = element['Text'].strip()
-            page_number = element['Page']
+            page_number = element['Page'] + 1  # Adjust page number to start from 1
             has_paragraph_indent = False
             is_bold_font = False
             correct_font_family = False
@@ -90,68 +85,74 @@ def check_format(json_file):
                         has_paragraph_indent = True
 
             if header_text.endswith('.'):
-                errors_ending_with_dot.append(header_text)
+                errors.append({
+                    'error_desc': 'Header ends with a dot',
+                    'error_page': page_number,
+                    'error_text': header_text
+                })
 
-            # lowercase
-            if not header_text.isupper() and not (header_text[0].isupper() and not any(c.islower() for c in header_text)):
-                errors_not_lowercase.append(header_text)
+            if header_text.upper() in required_headers:
+                if not header_text.isupper():
+                    errors.append({
+                        'error_desc': 'Header not fully uppercase',
+                        'error_page': page_number,
+                        'error_text': header_text
+                    })
+            else:
+                words = header_text.split()
+                if words:
+                    first_word = words[0]
+                    if first_word[0].isdigit() and len(first_word) > 1:
+                        if not words[1][0].isupper():
+                            errors.append({
+                                'error_desc': 'Header not capitalized properly',
+                                'error_page': page_number,
+                                'error_text': header_text
+                            })
+                    elif not first_word[0].isupper():
+                        errors.append({
+                            'error_desc': 'Header not capitalized properly',
+                            'error_page': page_number,
+                            'error_text': header_text
+                        })
 
-            # Underline
             if '_' in header_text:
-                errors_containing_underline.append(header_text)
+                errors.append({
+                    'error_desc': 'Header contains underscore',
+                    'error_page': page_number,
+                    'error_text': header_text
+                })
 
-            # Indent
             if not has_paragraph_indent:
-                errors_no_paragraph_indent.append(header_text)
+                errors.append({
+                    'error_desc': 'Header lacks paragraph indent',
+                    'error_page': page_number,
+                    'error_text': header_text
+                })
 
-            # Font type & bold
-            font = element['Font']
-            if "TimesNewRomanPS-BoldMT" not in font['name']:
-                errors_not_bold_font.append(header_text)
-            elif "family_name" in font and font["family_name"] == "Times New Roman PS":
-                is_bold_font = True
+            font = element.get('Font', {})
+            if "TimesNewRomanPS-BoldMT" not in font.get('name', '') and "family_name" in font and font["family_name"] == "Times New Roman PS":
+                errors.append({
+                    'error_desc': 'Header not in bold font',
+                    'error_page': page_number,
+                    'error_text': header_text
+                })
             elif "family_name" in font and font["family_name"] != "Times New Roman PS":
-                errors_wrong_font.append(header_text)
+                errors.append({
+                    'error_desc': 'Header in wrong font',
+                    'error_page': page_number,
+                    'error_text': header_text
+                })
 
-            # Font size
             expected_size = 16
             allowed_deviation = 1.0
-            actual_size = element['TextSize']
+            actual_size = element.get('TextSize', 0)
 
             if not (expected_size - allowed_deviation <= actual_size <= expected_size + allowed_deviation):
-                errors_wrong_font_size.append(header_text)
+                errors.append({
+                    'error_desc': 'Header has incorrect font size',
+                    'error_page': page_number,
+                    'error_text': header_text
+                })
 
-    return {
-        "ending_with_dot": errors_ending_with_dot,
-        "not_uppercase": errors_not_lowercase,
-        "containing_underscore": errors_containing_underline,
-        "no_paragraph_indent": errors_no_paragraph_indent,
-        "not_bold_font": errors_not_bold_font,
-        "wrong_font": errors_wrong_font,
-        "wrong_font_size": errors_wrong_font_size
-    }
-
-def main():
-    json_file = 'json/with/pdf/data'
-
-    required_headers_errors = check_required_headers(json_file) # returns list of missing required headers
-    format_errors = check_format(json_file) # returns two-dimensional list sorted by type of error
-
-    # print("Ошибки в обязательных заголовках:\n")
-    # if required_headers_errors:
-    #     for error in required_headers_errors:
-    #         print(f"- {error}")
-    # else:
-    #     print("Все есть.")
-
-    # print("\nОшибки в форматировании заголовков:")
-    # for aspect, errors in format_errors.items():
-    #     if errors:
-    #         print(f"\n{aspect.replace('_', ' ').capitalize()}:")
-    #         for error in errors:
-    #             print(f"- {error}")
-    #     else:
-    #         print(f"\n{aspect.replace('_', ' ').capitalize()}: Нет ошибок")
-
-if __name__ == "__main__":
-    main()
+    return errors
