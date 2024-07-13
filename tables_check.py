@@ -20,22 +20,42 @@ def tables_check():
                 referenced_word = 'таблица'
 
             if referenced_word not in words[0]:
-                found_errors.append(errors_desc[20]['description'] + f'\n- таблица {table['table_count']}')
+                found_errors.append({
+                    'error_desc': errors_desc[21]['description'] + f'\n- таблица {table['table_count']}',
+                    'error_page': table['page'],
+                    'error_text': None,
+                })
                 return
 
         if 'numbering' in settings:
             numb_set = settings['numbering']
             if numb_set['continuous'] and '.' not in words[1] and not (words[1].isdigit() and int(words[1]) != table['table_count']):
-                found_errors.append(errors_desc[21]['description'] + f'\n- таблица {table['table_count']}')
+                found_errors.append({
+                    'error_desc': errors_desc[21]['description'] + f'\n- таблица {table['table_count']}',
+                    'error_page': table['page'],
+                    'error_text': None,
+                })
             elif not numb_set['continuous'] and '.' not in words[1]:
-                found_errors.append(errors_desc[21]['description'] + f'\n- таблица {table['table_count']}')
+                found_errors.append({
+                    'error_desc': errors_desc[21]['description'] + f'\n- таблица {table['table_count']}',
+                    'error_page': table['page'],
+                    'error_text': None,
+                })
             if numb_set['per_section'] and '.' not in words[1] and not numb_set['continuous']:
-                found_errors.append(errors_desc[21]['description'] + f'\n- таблица {table['table_count']}')
+                found_errors.append({
+                    'error_desc': errors_desc[21]['description'] + f'\n- таблица {table['table_count']}',
+                    'error_page': table['page'],
+                    'error_text': None,
+                })
             elif numb_set['per_section'] and '.' in words[1]:
                 parts = words[1].split('.')
                 for part in parts:
                     if not part.isdigit():
-                        found_errors.append(errors_desc[21]['description'] + f'\n- таблица {table['table_count']}')
+                        found_errors.append({
+                            'error_desc': errors_desc[21]['description'] + f'\n- таблица {table['table_count']}',
+                            'error_page': table['page'],
+                            'error_text': None,
+                        })
 
     def apply_table_settings():
         found_errors = []
@@ -64,48 +84,88 @@ def tables_check():
         if 'top' in settings['title_position']:
             for table in tables:
                 if 'Text' not in table['prev_element']:
-                    found_errors.append(errors_desc[20]['description'] + f'\n- таблица {table['table_count']}')
+                    found_errors.append({
+                        'error_desc': errors_desc[20]['description'] + f'\n- таблица {table['table_count']}',
+                        'error_page': table['page'],
+                        'error_text': None,
+                    })
                     continue
                 if 'left' in settings['title_position'] and table['prev_element']['Bounds'][0] > 100:
-                    found_errors.append(errors_desc[20]['description'] + f'\n- таблица {table['table_count']}')
+                    found_errors.append({
+                        'error_desc': errors_desc[20]['description'] + f'\n- таблица {table['table_count']}',
+                        'error_page': table['page'],
+                        'error_text': None,
+                    })
                     continue
                 if 'right' in settings['title_position'] and table['prev_element']['Bounds'][0] < 100:
-                    found_errors.append(errors_desc[20]['description'] + f'\n- таблица {table['table_count']}')
+                    found_errors.append({
+                        'error_desc': errors_desc[20]['description'] + f'\n- таблица {table['table_count']}',
+                        'error_page': table['page'],
+                        'error_text': None,
+                    })
                     continue
                 title = str(table['prev_element']['Text']) if table['prev_element']['Text'] else ''
                 check_title(title, found_errors, table)
         elif 'bottom' in settings['title_position']:
             for table in tables:
                 if 'Text' not in table['next_element']:
-                    found_errors.append(errors_desc[20]['description'] + f'\n- таблица {table['table_count']}')
+                    found_errors.append({
+                        'error_desc': errors_desc[20]['description'] + f'\n- таблица {table['table_count']}',
+                        'error_page': table['page'],
+                        'error_text': None,
+                    })
                     continue
                 if 'left' in settings['title_position'] and table['next_element']['Bounds'][0] > 100:
-                    found_errors.append(errors_desc[20]['description'] + f'\n- таблица {table['table_count']}')
+                    found_errors.append({
+                        'error_desc': errors_desc[20]['description'] + f'\n- таблица {table['table_count']}',
+                        'error_page': table['page'],
+                        'error_text': None,
+                    })
                     continue
                 if 'right' in settings['title_position'] and table['next_element']['Bounds'][0] < 100:
-                    found_errors.append(errors_desc[20]['description'] + f'\n- таблица {table['table_count']}')
+                    found_errors.append({
+                        'error_desc': errors_desc[20]['description'] + f'\n- таблица {table['table_count']}',
+                        'error_page': table['page'],
+                        'error_text': None,
+                    })
                     continue
                 title = str(table['prev_element']['Text']) if table['next_element']['Text'] else ''
                 check_title(title, found_errors, table)
 
         for table in tables:
             if "//Document/Table" in table['next_element']['Path']:
-                found_errors.append(errors_desc[18]['description'] + f'\n- таблица {table['table_count']}')
+                found_errors.append({
+                    'error_desc': errors_desc[18]['description'] + f'\n- таблица {table['table_count']}',
+                    'error_page': table['page'],
+                    'error_text': None,
+                })
 
         if 'large_tables' in settings:
             for table in tables:
                 if "//Document/Table" in table['next_element']['Path'] and table['page'] != table['next_element']['page']:
-                    found_errors.append(errors_desc[0]['description'] + f'\n- таблица {table['table_count']}')
+                    found_errors.append({
+                        'error_desc': errors_desc[0]['description'] + f'\n- таблица {table['table_count']}',
+                        'error_page': table['page'],
+                        'error_text': None,
+                    })
                     continue
 
         if 'object_position' in settings and 'after_next_page' in settings['object_position']:
             for table in tables:
                 if ('табл' not in all_text[table['page']]) or (table['page'] > 0 and 'табл' not in all_text[table['page']-1]):
-                    found_errors.append(errors_desc[19]['description'] + f'\n- таблица {table['table_count']}')
+                    found_errors.append({
+                        'error_desc': errors_desc[19]['description'] + f'\n- таблица {table['table_count']}',
+                        'error_page': table['page'],
+                        'error_text': None,
+                    })
         elif 'object_position' in settings and 'after_first_reference' in settings['object_position']:
             for table in tables:
                 if 'табл' not in all_text[table['page']]:
-                    found_errors.append(errors_desc[19]['description'] + f'\n- таблица {table['table_count']}')
+                    found_errors.append({
+                        'error_desc': errors_desc[19]['description'] + f'\n- таблица {table['table_count']}',
+                        'error_page': table['page'],
+                        'error_text': None,
+                    })
         return found_errors
 
     all_text = get_all_text()
