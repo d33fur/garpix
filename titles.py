@@ -1,22 +1,20 @@
 import json
 import re
 
-def check_required_headers(json_file):
-    with open(json_file, 'r', encoding='utf-8') as f:
-        data = json.load(f)
+with open('structuredData.json', 'r') as f:
+    CURRENT_PDF_JSON = json.load(f)
 
-    elements = data['elements']
+with open('errors_desc.json', 'r') as f:
+    CURRENT_ERRORS_JSON = json.load(f)
+
+with open('7.32-2017.json', 'r') as f:
+    CURRENT_STANDARD_JSON = json.load(f)
+
+def check_required_headers():
+    elements = CURRENT_PDF_JSON['elements']
     pattern = re.compile(r'//Document/H1(?:\[(\d+)\])?')
 
-    required_headers = [
-        "СОДЕРЖАНИЕ",
-        "ТЕРМИНЫ И ОПРЕДЕЛЕНИЯ",
-        "ПЕРЕЧЕНЬ СОКРАЩЕНИЙ И ОБОЗНАЧЕНИЙ",
-        "ВВЕДЕНИЕ",
-        "ЗАКЛЮЧЕНИЕ",
-        "СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ",
-        "ПРИЛОЖЕНИЯ"
-    ]
+    required_headers = CURRENT_STANDARD_JSON['report_format']['structural_elements']
 
     found_headers = []
     missing_headers = []
@@ -51,23 +49,12 @@ def check_required_headers(json_file):
 
     return missing_headers
 
-def check_format(json_file):
-    with open(json_file, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-
-    elements = data['elements']
+def check_format():
+    elements = CURRENT_PDF_JSON['elements']
 
     errors = []
 
-    required_headers = [
-        "СОДЕРЖАНИЕ",
-        "ТЕРМИНЫ И ОПРЕДЕЛЕНИЯ",
-        "ПЕРЕЧЕНЬ СОКРАЩЕНИЙ И ОБОЗНАЧЕНИЙ",
-        "ВВЕДЕНИЕ",
-        "ЗАКЛЮЧЕНИЕ",
-        "СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ",
-        "ПРИЛОЖЕНИЯ"
-    ]
+    required_headers = CURRENT_STANDARD_JSON['report_format']['structural_elements']
 
     for element in elements:
         if 'Text' in element and element['Path'].startswith("//Document/H1"):
@@ -84,7 +71,7 @@ def check_format(json_file):
                     if left_x > 3:
                         has_paragraph_indent = True
 
-            if header_text.endswith('.'):
+            if header_text.endswith('.') and not CURRENT_STANDARD_JSON['report_format']['titles']['end_with_period']:
                 errors.append({
                     'error_desc': 'Header ends with a dot',
                     'error_page': page_number,
@@ -92,7 +79,7 @@ def check_format(json_file):
                 })
 
             if header_text.upper() in required_headers:
-                if not header_text.isupper():
+                if not header_text.isupper() and CURRENT_STANDARD_JSON['report_format']['titles']['capitalization'] == "all":
                     errors.append({
                         'error_desc': 'Header not fully uppercase',
                         'error_page': page_number,
@@ -103,13 +90,13 @@ def check_format(json_file):
                 if words:
                     first_word = words[0]
                     if first_word[0].isdigit() and len(first_word) > 1:
-                        if not words[1][0].isupper():
+                        if not words[1][0].isupper() and CURRENT_STANDARD_JSON['report_format']['titles']['sections_and_subsections']['capitalize_first_letter'] == True:
                             errors.append({
                                 'error_desc': 'Header not capitalized properly',
                                 'error_page': page_number,
                                 'error_text': header_text
                             })
-                    elif not first_word[0].isupper():
+                    elif not first_word[0].isupper() and CURRENT_STANDARD_JSON['report_format']['titles']['sections_and_subsections']['capitalize_first_letter'] == True:
                         errors.append({
                             'error_desc': 'Header not capitalized properly',
                             'error_page': page_number,
@@ -131,13 +118,13 @@ def check_format(json_file):
                 })
 
             font = element.get('Font', {})
-            if "TimesNewRomanPS-BoldMT" not in font.get('name', '') and "family_name" in font and font["family_name"] == "Times New Roman PS":
+            if "TimesNewRomanPS-BoldMT" not in font.get('name', '') and "family_name" in font and CURRENT_STANDARD_JSON['report_format']['font']['type'] not in font["family_name"]:
                 errors.append({
                     'error_desc': 'Header not in bold font',
                     'error_page': page_number,
                     'error_text': header_text
                 })
-            elif "family_name" in font and font["family_name"] != "Times New Roman PS":
+            elif "family_name" in font and "family_name" in font and CURRENT_STANDARD_JSON['report_format']['font']['type'] not in font["family_name"]:
                 errors.append({
                     'error_desc': 'Header in wrong font',
                     'error_page': page_number,
