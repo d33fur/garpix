@@ -19,10 +19,11 @@ def find_h1_headers():
             }
             headers.append(header)
 
-    # # для проверки
-    # print("H1 Headers:")
-    # for header in headers:
-    #     print(header)
+    # для проверки
+    print("H1 Headers:")
+    for header in headers:
+        print(header)
+
     def check_headers_on_different_pages(headers):
         pages_with_headers = set()
         errors = []
@@ -45,7 +46,7 @@ def extract_header_entries(headers):
     elements = CURRENT_PDF_JSON['elements']
     header_pattern = re.compile(r'//Document/TOC/TOCI(?:\[\d+\])?/Reference')
     # паттерн для введения тк у него другой Path
-    temp_pattern = re.compile(r'//Document/TOC/TOCI/Span/Reference')
+    temp_pattern = re.compile(r'//Document/TOC/TOCI(?:\[\d+\])?/Span/Reference')
 
     header_entries = []
     current_entry = {}
@@ -80,10 +81,10 @@ def extract_header_entries(headers):
                 header_entries.append(current_entry)
                 current_entry = {}
 
-    # # для проверки
-    # print("\nHeader Entries:")
-    # for entry in header_entries:
-    #     print(entry)
+    # для проверки
+    print("\nHeader Entries:")
+    for entry in header_entries:
+        print(entry)
 
 
     def check_headers_with_entries(headers, headers_entries):
