@@ -11,12 +11,8 @@
       "color": "black",
       "min_size": "12",
       "default_type": "Times New Roman",
-      "bold": {
-        ["section_titles"]
-      },
-      "italic": {
-        ["objects", "terms_in_latin"]
-      }
+      "bold": ["section_titles"],
+      "italic": ["objects", "terms_in_latin"]      
     },
     "page_numbering": {
       "style": "ARABIC",
