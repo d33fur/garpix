@@ -56,15 +56,18 @@ def main():
 
     with st.sidebar:
         uploaded_file = st.file_uploader("Загрузите документ", type=['docx', 'pdf'], key='file', on_change=on_change_uploaded_file)
-        st.header("Размеры")
-        width = st.slider(label="Ширина", min_value=100, max_value=1000, value=700)
-        height = st.slider(label="Высота", min_value=-1, max_value=1000, value=-1)
+        # st.header("Размеры")
+        # width = st.slider(label="Ширина", min_value=100, max_value=1000, value=700)
+        width = 700
+        # height = st.slider(label="Высота", min_value=-1, max_value=1000, value=-1)
+        height = -1
         list_standards = get_standards()
-        if uploaded_file is not None:
-            st.header("Выберите ГОСТ")
-            element = st.selectbox(label = "ГОСТ",options=list_standards, label_visibility="hidden", key="standard", index=None)
-            if element is not None:
-                st.button("Отправить на проверку", on_click=on_change_selectbox)
+        # if uploaded_file is not None:
+        st.header("Выберите ГОСТ")
+        element = st.selectbox(label = "ГОСТ",options=list_standards, label_visibility="hidden", key="standard", index=None)
+        
+        if element is not None and uploaded_file is not None:
+            st.button("Отправить на проверку", on_click=on_change_selectbox)
     
     if uploaded_file is not None and 'uploaded_file' in st.session_state:
             col1, col2 = st.columns([0.5, 0.5])
