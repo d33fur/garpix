@@ -2,11 +2,12 @@ import json
 import re
 
 
-def find_h1_headers(json_file):
-    with open(json_file, 'r', encoding='utf-8') as f:
-        data = json.load(f)
+with open('./structuredData.json', 'r') as f:
+    CURRENT_PDF_JSON = json.load(f)
 
-    elements = data['elements']
+
+def find_h1_headers():
+    elements = CURRENT_PDF_JSON['elements']
     pattern = re.compile(r'//Document/H1(?:\[(\d+)\])?')
 
     headers = []
@@ -18,26 +19,30 @@ def find_h1_headers(json_file):
             }
             headers.append(header)
 
-    return headers
+    # # для проверки
+    # print("H1 Headers:")
+    # for header in headers:
+    #     print(header)
+    def check_headers_on_different_pages(headers):
+        pages_with_headers = set()
+        errors = []
+        current_error = {}
 
+        for header in headers:
+            if header['Page'] in pages_with_headers:
+                current_error['error_desc'] = 'contains multiple H1 headers on one page.'
+                current_error['error_page'] = header['Page']
+                current_error['error_text'] = header['Text']
+                errors.append(current_error)
+                current_error = {}
+            pages_with_headers.add(header['Page'])
 
-def check_headers_on_different_pages(headers):
-    pages_with_headers = set()
-    errors = []
+        return errors
 
-    for header in headers:
-        if header['Page'] in pages_with_headers:
-            errors.append(f"Page {header['Page']} contains multiple H1 headers.")
-        pages_with_headers.add(header['Page'])
+    return check_headers_on_different_pages(headers), headers
 
-    return errors
-
-
-def extract_header_entries(json_file):
-    with open(json_file, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-
-    elements = data['elements']
+def extract_header_entries(headers):
+    elements = CURRENT_PDF_JSON['elements']
     header_pattern = re.compile(r'//Document/TOC/TOCI(?:\[\d+\])?/Reference')
     # паттерн для введения тк у него другой Path
     temp_pattern = re.compile(r'//Document/TOC/TOCI/Span/Reference')
@@ -75,39 +80,42 @@ def extract_header_entries(json_file):
                 header_entries.append(current_entry)
                 current_entry = {}
 
-    return header_entries
-
-
-def check_headers_with_entries(headers, headers_entries):
-    errors = []
-
-    for header_entry in headers_entries:
-        matched_header = next((header for header in headers if header_entry['Title'] in header['Text']), None)
-        if matched_header:
-            if header_entry['Page'] != matched_header['Page']:
-                errors.append(f"Header '{header_entry['Title']}' is on page {matched_header['Page']}, but should be on page {header_entry['Page']}.")
-        else:
-            errors.append(f"header entry '{header_entry['Title']}' does not match any header in the document.")
-
-    return errors
-
-
-def main():
-    json_file = '/Users/master/Downloads/structuredData.json'
-
-    headers = find_h1_headers(json_file)
-    page_errors = check_headers_on_different_pages(headers)
-
-    # print("H1 Headers:")
-    # for header in headers:
-    #     print(header)
-
-    header_entries = extract_header_entries(json_file)
-    entries_errors = check_headers_with_entries(headers, header_entries)
-
+    # # для проверки
     # print("\nHeader Entries:")
     # for entry in header_entries:
     #     print(entry)
+
+
+    def check_headers_with_entries(headers, headers_entries):
+        errors = []
+        current_error = {}
+
+        for header_entry in headers_entries:
+            matched_header = next((header for header in headers if header_entry['Title'] in header['Text']), None)
+            if matched_header:
+                if header_entry['Page'] != matched_header['Page']:
+                    current_error['error_desc'] = 'H1 header should be on other page.'
+                    current_error['error_page'] = header_entry['Page']
+                    current_error['error_text'] = header_entry['Title']
+                    errors.append(current_error)
+                    current_error = {}
+            else:
+                current_error['error_desc'] = 'does not match any header in the document.'
+                current_error['error_page'] = header_entry['Page']
+                current_error['error_text'] = header_entry['Title']
+                errors.append(current_error)
+                current_error = {}
+
+        return errors
+
+    return check_headers_with_entries(headers, header_entries)
+
+
+def main():
+    json_file = './structuredData.json'
+
+    page_errors, headers = find_h1_headers()
+    entries_errors = extract_header_entries(headers)
 
     if page_errors:
         print("\nErrors found:")
