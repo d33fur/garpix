@@ -3,6 +3,7 @@ import requests
 import io
 import os
 import tempfile
+import json
 from streamlit_pdf_viewer import pdf_viewer
 from docx2pdf import convert
 from streamlit_float import *
@@ -44,7 +45,8 @@ def on_change_selectbox():
     }
     response = requests.post(url="http://garpix_backend:8000/check", files=files, headers=headers)
     if response.status_code == 200:
-        st.session_state.new_file = response.text
+        tmp = json.loads(response.text)
+        st.session_state.new_file = tmp["errors"]
 
 
 def main():
@@ -69,17 +71,18 @@ def main():
             with col1:
                 pdf_viewer(input=st.session_state.uploaded_file, width=width, height=height if height != -1 else None, render_text=True)
             with col2:
-                with st.popover("Результат"):
-                    st.text("Документ соответствуют ГОСТу")
-                blank_lines = "&nbsp;  \n&nbsp;  \n&nbsp;  \n&nbsp;"
-                st.markdown(blank_lines)
-                with st.popover("Информация об ошибках"):
-                    if 'new_file' in st.session_state:
+                if 'new_file' in st.session_state:
+                    result = "Документ соответствуют ГОСТу" if st.session_state.new_file == "" else "Документ не соответствуют ГОСТу"
+                    with st.popover("Результат"):
+                        st.text(result)
+                    blank_lines = "&nbsp;  \n&nbsp;  \n&nbsp;  \n&nbsp;"
+                    st.markdown(blank_lines)
+                    with st.popover("Информация об ошибках"):
                         style = """<style>
-                        #bui8 > div > div > div > div > div:nth-child(2) > div > div{ 
+                        .st-emotion-cache-183lzff{ 
                         white-space: normal; 
                         word-wrap: break-word;}
-                        #bui7 > div > div > div > div > div:nth-child(2) > div > div{ 
+                        .exotz4b0{ 
                         white-space: normal; 
                         word-wrap: break-word;}
                         </style>

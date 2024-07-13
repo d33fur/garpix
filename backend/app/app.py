@@ -1,10 +1,13 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File, Header, Depends
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from . import models, schemas
 from .database import SessionLocal, engine
 from .pdf_to_json import ExtractTextInfoFromPDF
 from dotenv import load_dotenv
 import os
+import json
+from .rules import all_check
 
 load_dotenv()
 
@@ -45,5 +48,8 @@ async def check_file(standart: str = Header(...), file: UploadFile = File(...), 
 
     parser = ExtractTextInfoFromPDF(file_location)
     CURRENT_PDF_JSON = parser.get_json_data()
-    
-    return CURRENT_PDF_JSON
+
+    errors_pdf = all_check(CURRENT_PDF_JSON, CURRENT_STANDARD_JSON)
+    answer = {"errors": errors_pdf}
+
+    return JSONResponse(content=answer)
