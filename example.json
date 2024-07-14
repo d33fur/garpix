@@ -16,9 +16,9 @@
     },
     "page_numbering": {
       "style": "ARABIC",
-      "position": ["bottom","center"],
-      "include_cover_page": false
-    },
+      "position": ["Bottom","Center"],
+      "starting_page": 2
+    } 
     "titles": {
       "position": "center",
       "capitalization": "all",
