@@ -66,15 +66,19 @@ def check_titles():
                 header_text = element['Text'].strip()
                 page_number = element['Page'] + 1  # Adjust page number to start from 1
                 has_paragraph_indent = False
-                is_bold_font = False
-                correct_font_family = False
 
-                if 'Bounds' in element:
-                    bounds = element['Bounds']
-                    if len(bounds) == 4:
-                        left_x = bounds[0] * 0.0264583333 
-                        if left_x > 3:
-                            has_paragraph_indent = True
+                if 'TextAlign' in element['attributes'] and element['attributes']['TextAlign'].lower() != CURRENT_STANDARD_JSON['report_format']['titles']['position'].lower():
+                    errors.append({
+                        'error_desc': 'Title not centered',
+                        'error_page': page_number,
+                        'error_text': header_text
+                    })
+                elif 'TextAlign' not in element['attributes']:
+                    errors.append({
+                        'error_desc': 'Title not centered',
+                        'error_page': page_number,
+                        'error_text': header_text
+                    })
 
                 if header_text.endswith('.') and not CURRENT_STANDARD_JSON['report_format']['titles']['end_with_period']:
                     errors.append({
@@ -115,13 +119,6 @@ def check_titles():
                         'error_text': header_text
                     })
 
-                if not has_paragraph_indent:
-                    errors.append({
-                        'error_desc': 'Header lacks paragraph indent',
-                        'error_page': page_number,
-                        'error_text': header_text
-                    })
-
                 font = element.get('Font', {})
                 if "TimesNewRomanPS-BoldMT" not in font.get('name', '') and "family_name" in font and CURRENT_STANDARD_JSON['report_format']['font']['type'] not in font["family_name"]:
                     errors.append({
@@ -155,4 +152,3 @@ def check_titles():
     feedback_title = feedback_of_required + feedback_format
 
     return feedback_title
-
