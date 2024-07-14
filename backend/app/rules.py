@@ -1,4 +1,9 @@
 import re
+import json
+import requests
+import uuid
+import os
+from dotenv import load_dotenv
 
 class JSONValidator:
     """
@@ -19,8 +24,9 @@ class JSONValidator:
     check_titles: проверяет документ на критерии, связанные с оглавлением
     preferences: ...;
     check_appendices_format: ...;
-    check_page_numbering: ...;
+    check_page_numbering: проверяет нумерацию страниц;
     check_font: ...;
+    title_text_accordance: ...ж
     """
     def __init__(self, CURRENT_PDF_JSON, CURRENT_STANDARD_JSON, CURRENT_ERRORS_JSON):
         self.CURRENT_PDF_JSON = CURRENT_PDF_JSON
@@ -725,7 +731,153 @@ class JSONValidator:
                     })
 
         return errors
-    
+
+    def check_page_numbering(self):
+        error_message = []
+        parametrs = self.CURRENT_STANDARD_JSON["report_format"]["page_numbering"]
+        style = parametrs['style']
+        position = parametrs['position']
+        starting_page = parametrs['starting_page']
+
+        def generate_numbering(style, starting_page):
+            page_count = self.CURRENT_PDF_JSON['extended_metadata']['page_count']
+            match style:
+                case 'ARABIC':
+                    return list(map(str, range(starting_page, page_count + 1)))
+                case _:
+                    return []
+
+        def numbering_page_element(position):
+            ans = []
+            match position[0]:
+                case 'Bottom':
+                    previous_element = None
+                    for element in self.CURRENT_PDF_JSON['elements']:
+                        if element['Page'] == 0:
+                            previous_element = element
+                            continue
+                        if element['Page'] != previous_element['Page']:
+                            ans.append(previous_element)
+                        previous_element = element
+                    ans.append(previous_element)
+                    return ans
+                case _:
+                    return []
+
+        numbering = generate_numbering(style, starting_page)
+        for page_num, element in enumerate(numbering_page_element(position), 1):
+            if page_num < starting_page:
+                continue
+            if "Text" in element:
+                if element['Text'] != numbering[page_num - starting_page]:
+                    error_message.append({'error_desc': 'Неправильная нумерации страницы. Должно быть ' + '"' +
+                                                        numbering[page_num - starting_page] + '"',
+                                          'error_page': element['Page'] + 1,
+                                          'error_text': element['Text']})
+                else:
+                    if "TextAllign" in element['attributes']:
+                        if element['attributes']['TextAllign'] != position[1]:
+                            error_message.append({'error_desc': 'Неправильное расположение по ширине',
+                                                  'error_page': element['Page'] + 1,
+                                                  'error_text': element['Text']})
+                    else:
+                        error_message.append({'error_desc': 'Неправильное расположение по ширине',
+                                              'error_page': element['Page'] + 1,
+                                              'error_text': element['Text']})
+
+            else:
+                error_message.append({'error_desc': 'Нет нумерации страницы',
+                                      'error_page': element['Page'] + 1,
+                                      'error_text': None})
+        return error_message
+
+    def title_text_accordance(self):
+        def get_env():
+            file = "auth.env"
+            if os.path.exists(file):
+                load_dotenv(file)
+
+        get_env()
+
+        def get_access_token():
+            request_id = uuid.uuid4()
+            url = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
+            payload = 'scope=GIGACHAT_API_PERS'
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json',
+                'RqUID': request_id.__str__(),
+                'Authorization': f'Basic {os.environ.get("GIGACHAT_AUTH")}'
+            }
+            response = requests.request("POST", url, headers=headers, data=payload, verify=False)
+            return response.json()['access_token']
+
+        access_token = get_access_token()
+
+        def get_all_text():
+            elements = self.CURRENT_PDF_JSON['elements']
+            headers = []
+            element_pos = 0
+            for element in elements:
+                if '//Document/H1' in element['Path']:
+                    headers.append({
+                        'title': element['Text'],
+                        'header_pos': element_pos,
+                        'next_header_pos': -1,
+                        'text': '',
+                    })
+                element_pos += 1
+            if len(headers) == 0:
+                return None
+            for i in range(len(headers) - 1):
+                headers[i]['next_header_pos'] = headers[i + 1]['header_pos']
+            element_pos = 0
+            cur_header = 0
+            for element in elements:
+                if element_pos > headers[cur_header]['header_pos']:
+                    if element_pos < headers[cur_header]['next_header_pos'] or headers[cur_header][
+                        'next_header_pos'] == -1:
+                        if 'Text' in element:
+                            headers[cur_header]['text'] += element['Text']
+                    else:
+                        cur_header = cur_header + 1
+                        if cur_header >= len(headers):
+                            break
+                element_pos += 1
+            return headers
+
+        def send_evaluation_request(title, text):
+            url = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
+            payload = json.dumps({
+                "model": "GigaChat",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": f"Оцени от 0 до 100, насколько текст подходит заголовку. Выведи цифру. Заголовок: {title}. Текст: {text}"
+                    }
+                ],
+                "stream": False,
+                "repetition_penalty": 1
+            })
+            headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': f'Bearer {access_token}'
+            }
+            response = requests.request("POST", url, headers=headers, data=payload, verify=False)
+            return response.json()["choices"][0]["message"]["content"]
+
+        hds = get_all_text()
+        found_errors = []
+        errors_desc = self.CURRENT_ERRORS_JSON['errors']
+        for header in hds:
+            eval = send_evaluation_request(header['title'], header['text'])
+            if eval.isdigit():
+                if int(eval) < 50:
+                    found_errors.append(errors_desc[8]['description'] + f'\n- заголовок {header["title"]}')
+        return found_errors
+
+
     def check_font(self):  
         section_titles = [
         "СПИСОК ИСПОЛНИТЕЛЕЙ",
