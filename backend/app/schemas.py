@@ -1,7 +1,12 @@
 from pydantic import BaseModel
+from typing import Dict, Any
 
-class StandartBase(BaseModel):
-    standart_name: str
+class StandardConfig(BaseModel):
+    standard_name: str
+    standard_json: Dict[str, Any]
 
     class Config:
-        from_attributes = True
+        orm_mode = True
+
+class StandardName(BaseModel):
+    standard_name: str
