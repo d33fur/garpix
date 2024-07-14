@@ -18,7 +18,7 @@ def check_page_numbering():
         page_count = CURRENT_PDF_JSON['extended_metadata']['page_count']
         match style:
             case 'ARABIC':
-                return list(map(str,range(starting_page, page_count - starting_page + 1)))
+                return list(map(str,range(starting_page, page_count + 1)))
             case _:
                 return []
     
