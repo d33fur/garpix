@@ -1,4 +1,3 @@
 streamlit
 streamlit-pdf-viewer
-streamlit-float
 docx2pdf

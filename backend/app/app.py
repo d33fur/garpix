@@ -7,7 +7,7 @@ from .pdf_to_json import ExtractTextInfoFromPDF
 from dotenv import load_dotenv
 import os
 import json
-from .rules import all_check
+from .rules import JSONValidator
 
 load_dotenv()
 
@@ -48,8 +48,10 @@ async def check_file(standart: str = Header(...), file: UploadFile = File(...), 
 
     parser = ExtractTextInfoFromPDF(file_location)
     CURRENT_PDF_JSON = parser.get_json_data()
+    with open("template/errors_desc.json", "r") as f:
+        CURRENT_ERRORS_JSON = json.load(f)
 
-    errors_pdf = all_check(CURRENT_PDF_JSON, CURRENT_STANDARD_JSON)
-    answer = {"errors": errors_pdf}
+    validator = JSONValidator(CURRENT_PDF_JSON, CURRENT_STANDARD_JSON, CURRENT_ERRORS_JSON)
+    answer = {"errors": validator.all_errors_markdown}
 
     return JSONResponse(content=answer)

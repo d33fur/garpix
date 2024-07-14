@@ -6,7 +6,6 @@ import tempfile
 import json
 from streamlit_pdf_viewer import pdf_viewer
 from docx2pdf import convert
-from streamlit_float import *
 
 
 def convert_docx_to_pdf(file_docx):
@@ -52,7 +51,6 @@ def on_change_selectbox():
 def main():
     st.set_page_config(layout="wide", page_icon='📄')
     st.title('Система автоматизированного нормоконтроля')
-    float_init()
 
     with st.sidebar:
         uploaded_file = st.file_uploader("Загрузите документ", type=['docx', 'pdf'], key='file', on_change=on_change_uploaded_file)
@@ -75,24 +73,9 @@ def main():
                 pdf_viewer(input=st.session_state.uploaded_file, width=width, height=height if height != -1 else None, render_text=True)
             with col2:
                 if 'new_file' in st.session_state:
-                    result = "Документ соответствуют ГОСТу" if st.session_state.new_file == "" else "Документ не соответствуют ГОСТу"
-                    with st.popover("Результат"):
-                        st.text(result)
-                    blank_lines = "&nbsp;  \n&nbsp;  \n&nbsp;  \n&nbsp;"
-                    st.markdown(blank_lines)
-                    with st.popover("Информация об ошибках"):
-                        style = """<style>
-                        .st-emotion-cache-183lzff{ 
-                        white-space: normal; 
-                        word-wrap: break-word;}
-                        .exotz4b0{ 
-                        white-space: normal; 
-                        word-wrap: break-word;}
-                        </style>
-                        """
-                        st.markdown(style, unsafe_allow_html=True)
-                        st.text(st.session_state.new_file)
-                float_parent()
+                    result = "Документ соответствует ГОСТу" if st.session_state.new_file == "" else "Документ не соответствует ГОСТу"
+                    st.subheader(result)
+                    st.markdown(st.session_state.new_file)
 
 if __name__ == "__main__":
     main()
