@@ -1,4 +1,3 @@
-import json
 import re
 
 class JSONValidator:
@@ -18,7 +17,10 @@ class JSONValidator:
     general: проверка документа на то, что заголовки на разных страницах и проверка соответствия заголовков на страницах содержания и их фактических номеров страниц;
     check_tables: проверяет документ на оформление таблиц;
     check_titles: проверяет документ на критерии, связанные с оглавлением
-    preferences: ...
+    preferences: ...;
+    check_appendices_format: ...;
+    check_page_numbering: ...;
+    check_font: ...;
     """
     def __init__(self, CURRENT_PDF_JSON, CURRENT_STANDARD_JSON, CURRENT_ERRORS_JSON):
         self.CURRENT_PDF_JSON = CURRENT_PDF_JSON
@@ -104,6 +106,7 @@ class JSONValidator:
         for element in to_del:
             found_errors.remove(element)
         return found_errors
+    
     def check_images(self):
         standard = dict()
 
@@ -183,6 +186,7 @@ class JSONValidator:
                         errors.append(tmp)
 
         return errors
+    
     def general(self):
     # общий массив с ошибками
         errors = []
@@ -293,6 +297,7 @@ class JSONValidator:
 
         # возвращает массив ошибок
         return errors
+    
     def check_tables(self):
         def get_all_text():
             elements = self.CURRENT_PDF_JSON['elements']
@@ -466,6 +471,7 @@ class JSONValidator:
         all_text = get_all_text()
         found_errors = apply_table_settings()
         return found_errors
+    
     def preferences(self):
 
         def get_all_text():
@@ -520,7 +526,9 @@ class JSONValidator:
                     'error_text': None,
                 })
         return found_errors
+    
     def check_titles(self):
+        
         def check_required_headers():
             elements = self.CURRENT_PDF_JSON['elements']
             pattern = re.compile(r'//Document/H1(?:\[(\d+)\])?')
@@ -572,15 +580,19 @@ class JSONValidator:
                     header_text = element['Text'].strip()
                     page_number = element['Page'] + 1  # Adjust page number to start from 1
                     has_paragraph_indent = False
-                    is_bold_font = False
-                    correct_font_family = False
 
-                    if 'Bounds' in element:
-                        bounds = element['Bounds']
-                        if len(bounds) == 4:
-                            left_x = bounds[0] * 0.0264583333 
-                            if left_x > 3:
-                                has_paragraph_indent = True
+                    if 'TextAlign' in element['attributes'] and element['attributes']['TextAlign'].lower() != self.CURRENT_STANDARD_JSON['report_format']['titles']['position'].lower():
+                        errors.append({
+                            'error_desc': 'Title not centered',
+                            'error_page': page_number,
+                            'error_text': header_text
+                        })
+                    elif 'TextAlign' not in element['attributes']:
+                        errors.append({
+                            'error_desc': 'Title not centered',
+                            'error_page': page_number,
+                            'error_text': header_text
+                        })
 
                     if header_text.endswith('.') and not self.CURRENT_STANDARD_JSON['report_format']['titles']['end_with_period']:
                         errors.append({
@@ -621,13 +633,6 @@ class JSONValidator:
                             'error_text': header_text
                         })
 
-                    if not has_paragraph_indent:
-                        errors.append({
-                            'error_desc': 'Header lacks paragraph indent',
-                            'error_page': page_number,
-                            'error_text': header_text
-                        })
-
                     font = element.get('Font', {})
                     if "TimesNewRomanPS-BoldMT" not in font.get('name', '') and "family_name" in font and self.CURRENT_STANDARD_JSON['report_format']['font']['type'] not in font["family_name"]:
                         errors.append({
@@ -661,6 +666,154 @@ class JSONValidator:
         feedback_title = feedback_of_required + feedback_format
 
         return feedback_title
+    
+    def check_appendices_format(self):
+        elements = self.CURRENT_PDF_JSON['elements']
+        errors = []
+
+        appendix_format = self.CURRENT_STANDARD_JSON['report_format']['appendices']
+        allowed_letters = appendix_format['numbering']['allowed_letters']
+        required_word = "приложени" # Расчет на случай, когда склонение неправильное
+
+        appendix_pattern = re.compile(rf'{required_word}\s*([{allowed_letters}])', re.IGNORECASE)
+
+        for element in elements:
+            if 'Text' in element and element['Path'].startswith("//Document/H1"):
+                header_text = element['Text']
+                page_number = element['Page'] + 1
+
+                if not re.search(required_word, header_text, re.IGNORECASE):
+                    continue
+
+                if 'прилож' in header_text.lower() and 'приложение' not in header_text.lower():
+                    errors.append({
+                        'error_desc': 'Appendix header is written incorrectly',
+                        'error_page': page_number,
+                        'error_text': header_text
+                    })
+                elif element['title_format']['word'] != header_text:
+                    errors.append({
+                        'error_desc': 'Appendix header case is incorrect',
+                        'error_page': page_number,
+                        'error_text': header_text
+                    })
+
+                match = appendix_pattern.match(header_text)
+                if match:
+                    letter = match.group(1).upper()
+                    if letter not in allowed_letters:
+                        errors.append({
+                            'error_desc': f'Appendix header contains invalid letter: {letter}',
+                            'error_page': page_number,
+                            'error_text': header_text
+                        })
+                else:
+                    errors.append({
+                        'error_desc': 'Appendix header format incorrect',
+                        'error_page': page_number,
+                        'error_text': header_text
+                    })
+
+        return errors
+    
+    def check_font(self):  
+        section_titles = [
+        "СПИСОК ИСПОЛНИТЕЛЕЙ",
+        "РЕФЕРАТ",
+        "СОДЕРЖАНИЕ",
+        "ТЕРМИНЫ И ОПРЕДЕЛЕНИЯ",
+        "ПЕРЕЧЕНЬ СОКРАЩЕНИЙ И ОБОЗНАЧЕНИЙ",
+        "ВВЕДЕНИЕ",
+        "ЗАКЛЮЧЕНИЕ",
+        "СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ",
+        "ПРИЛОЖЕНИЕ"]
+        error_message = []
+        parametrs = self.CURRENT_STANDARD_JSON["report_format"]["font"]
+        color = parametrs['color']
+        min_size = int(parametrs['min_size'])
+        fontname = parametrs['default_type']
+        bold_text_types = parametrs['bold']['apply_to']
+        italic_text_types = parametrs['italic']['apply_to']
+
+        def is_text(element):
+            return "Font" in element
+        
+        def is_correct_font(text,fontname):
+            return fontname in text['Font']['family_name']
+        
+        def is_bold(text):
+            fontname = text['Font']['name']
+            return 'Bold' in fontname
+
+        def is_italic(text):
+            fontname = text['Font']['name']
+            return 'Italic' in fontname
+
+        def check_color(color):
+            error_message = []
+            return error_message
+        
+        def check_font_size(min_size):
+            error_message = []
+            current_page = -1
+            epsilon = 0.1
+            for element in self.CURRENT_PDF_JSON['elements']:
+                if is_text(element):
+                    if element['TextSize'] < (min_size - epsilon):
+                        if current_page != element['Page']:
+                            error_message.append({'error_desc':'Размер шрифта меньше необходимых ' + str(min_size) + 'pt',
+                                                'error_page': element['Page'] + 1,
+                                                'error_text': element['Text'] })
+                    current_page = element['Page']
+            return error_message
+
+        def check_font_type(fontname):
+            error_message = []
+            heauristic_ratio = 0.9
+            text_length = 0.0
+            conventional_text_length = 0.0
+            for element in self.CURRENT_PDF_JSON['elements']:
+                if is_text(element):
+                    text_length += len(element['Text'])
+                    if is_correct_font(element,fontname):
+                        conventional_text_length += len(element['Text'])
+            if (conventional_text_length / text_length) < heauristic_ratio:
+                error_message.append({'error_desc':'Использованный в документе шрифт не соответствует ' + str(fontname),
+                                    'error_page': None,
+                                    'error_text': element['Text']})
+            return error_message
+
+        def check_bold(bold_text_types):
+            error_message = []
+            for category in bold_text_types:
+                if category == 'section_titles':
+                    for element in self.CURRENT_PDF_JSON['elements']:
+                        if is_text(element):
+                            if element['Text'] in section_titles and not is_bold(element):
+                                error_message.append({'error_desc':'Заголовок структурного элемента \'' + category + '\' не выделен полужирном шрифтом',
+                                                    'error_page': element['Page'] + 1,
+                                                    'error_text': element['Text']})
+            return error_message
+
+        def check_italic(italic_text_types):
+            error_message = []
+            for category in italic_text_types:
+                if category == 'terms_in_latin':
+                    for element in self.CURRENT_PDF_JSON['elements']:
+                        if is_text(element) and "Lang" in element:
+                            if (element['Lang'] == 'ru') and is_italic(element):
+                                error_message.append({'error_desc':'Текст не должен быть выделен курсивом',
+                                                    'error_page': element['Page'] + 1,
+                                                    'error_text': element['Text']})
+            return error_message
+    
+        error_message = (check_color(color)+
+            check_font_size(min_size)+
+            check_font_type(fontname)+
+            check_bold(bold_text_types)+
+            check_italic(italic_text_types))
+        return error_message
+    
     def collect_errors(self):
         all_errors = list()
         method_list = [func for func in dir(JSONValidator) if callable(getattr(JSONValidator, func)) and not func.startswith("__") and not func == "collect_errors"]

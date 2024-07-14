@@ -37,18 +37,30 @@ DECLARE
     "font": {
       "color": "black",
       "size": "12pt",
+      "min_size": "12",
+      "default_type": "Times New Roman",
       "type": "Times New Roman",
       "bold": {
-        "apply_to": ["section_titles", "subsection_titles", "structural_element_titles"]
+        "apply_to": [
+          "section_titles",
+          "subsection_titles",
+          "structural_element_titles"
+        ]
       },
       "italic": {
-        "apply_to": ["objects", "terms_in_latin"]
+        "apply_to": [
+          "objects",
+          "terms_in_latin"
+        ]
       }
     },
     "page_numbering": {
       "style": "ARABIC",
-      "position": ["bottom","center"],
-      "include_cover_page": false
+      "position": [
+        "Bottom",
+        "Center"
+      ],
+      "starting_page": 2
     },
     "titles": {
       "position": "center",
@@ -65,7 +77,10 @@ DECLARE
       }
     },
     "illustrations": {
-      "object_position": ["after_first_reference", "after_next_page"],
+      "object_position": [
+        "after_first_reference",
+        "after_next_page"
+      ],
       "reference_in_text": {
         "word": "рисунок",
         "number": true
@@ -87,7 +102,10 @@ DECLARE
       }
     },
     "tables": {
-      "object_position": ["after_first_reference", "after_next_page"],
+      "object_position": [
+        "after_first_reference",
+        "after_next_page"
+      ],
       "reference_in_text": {
         "word": "таблица",
         "number": true
@@ -127,13 +145,23 @@ DECLARE
       },
       "footnotes": {
         "object_position": "page_end",
-        "separator_line": ["short","thin","left_aligned"],
-        "style": ["ARABIC", "ASTERISK"]
+        "separator_line": [
+          "short",
+          "thin",
+          "left_aligned"
+        ],
+        "style": [
+          "ARABIC",
+          "ASTERISK"
+        ]
       }
     },
     "formulas": {
       "position": "center",
-      "spacing": ["above", "below"],
+      "spacing": [
+        "above",
+        "below"
+      ],
       "numbering": {
         "style": "ARABIC",
         "continuous": true,
@@ -156,7 +184,10 @@ DECLARE
     },
     "cover_page": {
       "ministry_name": {
-        "position": ["top", "center"],
+        "position": [
+          "top",
+          "center"
+        ],
         "capitalization": "first_letter"
       },
       "organization_name": {
@@ -181,8 +212,14 @@ DECLARE
         "spacing_above": "2"
       },
       "approval_signatures": {
-        "words": ["СОГЛАСОВАНО", "УТВЕРЖДАЮ"],
-        "words_position": ["left", "right"],
+        "words": [
+          "СОГЛАСОВАНО",
+          "УТВЕРЖДАЮ"
+        ],
+        "words_position": [
+          "left",
+          "right"
+        ],
         "titles_and_names": {
           "title_first": true,
           "use_initials": true,
@@ -226,7 +263,10 @@ DECLARE
         "signature_position": "right"
       },
       "location_and_year": {
-        "position": ["center", "bottom"]
+        "position": [
+          "center",
+          "bottom"
+        ]
       }
     },
     "authors_list": {
@@ -260,7 +300,10 @@ DECLARE
       "terms_alignment": "left",
       "terms_order": "alphabetical",
       "definitions_divisor": "-",
-      "alternative_format": ["term", "definition"]
+      "alternative_format": [
+        "term",
+        "definition"
+      ]
     },
     "abbreviations_and_symbols": {
       "format": "column",
