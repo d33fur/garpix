@@ -128,6 +128,7 @@ class JSONValidator:
             part = elements[i]
             match = pattern.search(part['Path'])
             if match and 'Text' not in part:
+                print(part)
                 # Проверяем на IndexError
                 if i > 0 and i-1 < len(elements):
                     # Ищем ссылку в тексте на изображение
@@ -143,7 +144,16 @@ class JSONValidator:
                     if part['Path'] == next_part['Path']:
                         continue
                     next_pattern = re.compile(f'{standard["word"]}. (\d+)(?:(.\d+. .*)?)')
-                    next_match = next_pattern.search(next_part['Text'])
+                    if 'Text' in next_part:
+                        next_match = next_pattern.search(next_part['Text'])
+                    else: 
+                        tmp = {
+                            'error_desc': 'Нет описания для изображения',
+                            'error_page': next_part['Page']+1,
+                            'error_text': None,
+                        }
+                        errors.append(tmp)
+                        break
 
                 if next_match and before_match:
                     # Проверка шрифтов и положения
