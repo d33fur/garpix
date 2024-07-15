@@ -230,7 +230,7 @@ class JSONValidator:
 
                 for header in headers:
                     if header['Page'] in pages_with_headers:
-                        current_error['error_desc'] = 'contains multiple H1 headers on one page.'
+                        current_error['error_desc'] = 'Содержит несколько заголовков на одной странице.'
                         current_error['error_page'] = header['Page']
                         current_error['error_text'] = header['Text']
                         errors.append(current_error)
@@ -293,13 +293,13 @@ class JSONValidator:
                     matched_header = next((header for header in headers if header_entry['Title'] in header['Text']), None)
                     if matched_header:
                         if header_entry['Page'] != matched_header['Page']:
-                            current_error['error_desc'] = 'H1 header should be on other page.'
+                            current_error['error_desc'] = 'Заголовок должен быть на другой странице.'
                             current_error['error_page'] = header_entry['Page']
                             current_error['error_text'] = header_entry['Title']
                             errors.append(current_error)
                             current_error = {}
                     else:
-                        current_error['error_desc'] = 'does not match any header in the document.'
+                        current_error['error_desc'] = 'Заголовка нет в документе.'
                         current_error['error_page'] = header_entry['Page']
                         current_error['error_text'] = header_entry['Title']
                         errors.append(current_error)
@@ -337,7 +337,7 @@ class JSONValidator:
 
                 if referenced_word not in words[0]:
                     found_errors.append({
-                        'error_desc': errors_desc[21]['description'] + f'\n- таблица {table["table_count"]}',
+                        'error_desc': errors_desc[21]['description'] + f'\n- таблица {table["table_count"]}.',
                         'error_page': table['page'],
                         'error_text': None,
                     })
@@ -347,19 +347,19 @@ class JSONValidator:
                 numb_set = settings['numbering']
                 if numb_set['continuous'] and '.' not in words[1] and not (words[1].isdigit() and int(words[1]) != table['table_count']):
                     found_errors.append({
-                        'error_desc': errors_desc[21]['description'] + f'\n- таблица {table["table_count"]}',
+                        'error_desc': errors_desc[21]['description'] + f'\n- таблица {table["table_count"]}.',
                         'error_page': table['page'],
                         'error_text': None,
                     })
                 elif not numb_set['continuous'] and '.' not in words[1]:
                     found_errors.append({
-                        'error_desc': errors_desc[21]['description'] + f'\n- таблица {table["table_count"]}',
+                        'error_desc': errors_desc[21]['description'] + f'\n- таблица {table["table_count"]}.',
                         'error_page': table['page'],
                         'error_text': None,
                     })
                 if numb_set['per_section'] and '.' not in words[1] and not numb_set['continuous']:
                     found_errors.append({
-                        'error_desc': errors_desc[21]['description'] + f'\n- таблица {table["table_count"]}',
+                        'error_desc': errors_desc[21]['description'] + f'\n- таблица {table["table_count"]}.',
                         'error_page': table['page'],
                         'error_text': None,
                     })
@@ -368,7 +368,7 @@ class JSONValidator:
                     for part in parts:
                         if not part.isdigit():
                             found_errors.append({
-                                'error_desc': errors_desc[21]['description'] + f'\n- таблица {table["table_count"]}',
+                                'error_desc': errors_desc[21]['description'] + f'\n- таблица {table["table_count"]}.',
                                 'error_page': table['page'],
                                 'error_text': None,
                             })
@@ -401,21 +401,21 @@ class JSONValidator:
                 for table in tables:
                     if 'Text' not in table['prev_element']:
                         found_errors.append({
-                            'error_desc': errors_desc[20]['description'] + f'\n- таблица {table["table_count"]}',
+                            'error_desc': errors_desc[20]['description'] + f'\n- таблица {table["table_count"]}.',
                             'error_page': table['page'],
                             'error_text': None,
                         })
                         continue
                     if 'left' in settings['title_position'] and table['prev_element']['Bounds'][0] > 100:
                         found_errors.append({
-                            'error_desc': errors_desc[20]['description'] + f'\n- таблица {table["table_count"]}',
+                            'error_desc': errors_desc[20]['description'] + f'\n- таблица {table["table_count"]}.',
                             'error_page': table['page'],
                             'error_text': None,
                         })
                         continue
                     if 'right' in settings['title_position'] and table['prev_element']['Bounds'][0] < 100:
                         found_errors.append({
-                            'error_desc': errors_desc[20]['description'] + f'\n- таблица {table["table_count"]}',
+                            'error_desc': errors_desc[20]['description'] + f'\n- таблица {table["table_count"]}.',
                             'error_page': table['page'],
                             'error_text': None,
                         })
@@ -426,21 +426,21 @@ class JSONValidator:
                 for table in tables:
                     if 'Text' not in table['next_element']:
                         found_errors.append({
-                            'error_desc': errors_desc[20]['description'] + f'\n- таблица {table["table_count"]}',
+                            'error_desc': errors_desc[20]['description'] + f'\n- таблица {table["table_count"]}.',
                             'error_page': table['page'],
                             'error_text': None,
                         })
                         continue
                     if 'left' in settings['title_position'] and table['next_element']['Bounds'][0] > 100:
                         found_errors.append({
-                            'error_desc': errors_desc[20]['description'] + f'\n- таблица {table["table_count"]}',
+                            'error_desc': errors_desc[20]['description'] + f'\n- таблица {table["table_count"]}.',
                             'error_page': table['page'],
                             'error_text': None,
                         })
                         continue
                     if 'right' in settings['title_position'] and table['next_element']['Bounds'][0] < 100:
                         found_errors.append({
-                            'error_desc': errors_desc[20]['description'] + f'\n- таблица {table["table_count"]}',
+                            'error_desc': errors_desc[20]['description'] + f'\n- таблица {table["table_count"]}.',
                             'error_page': table['page'],
                             'error_text': None,
                         })
@@ -451,7 +451,7 @@ class JSONValidator:
             for table in tables:
                 if "//Document/Table" in table['next_element']['Path']:
                     found_errors.append({
-                        'error_desc': errors_desc[18]['description'] + f'\n- таблица {table["table_count"]}',
+                        'error_desc': errors_desc[18]['description'] + f'\n- таблица {table["table_count"]}.',
                         'error_page': table['page'],
                         'error_text': None,
                     })
@@ -460,7 +460,7 @@ class JSONValidator:
                 for table in tables:
                     if "//Document/Table" in table['next_element']['Path'] and table['page'] != table['next_element']['page']:
                         found_errors.append({
-                            'error_desc': errors_desc[0]['description'] + f'\n- таблица {table["table_count"]}',
+                            'error_desc': errors_desc[0]['description'] + f'\n- таблица {table["table_count"]}.',
                             'error_page': table['page'],
                             'error_text': None,
                         })
@@ -470,7 +470,7 @@ class JSONValidator:
                 for table in tables:
                     if ('табл' not in all_text[table['page']]) or (table['page'] > 0 and 'табл' not in all_text[table['page']-1]):
                         found_errors.append({
-                            'error_desc': errors_desc[19]['description'] + f'\n- таблица {table["table_count"]}',
+                            'error_desc': errors_desc[19]['description'] + f'\n- таблица {table["table_count"]}.',
                             'error_page': table['page'],
                             'error_text': None,
                         })
@@ -478,7 +478,7 @@ class JSONValidator:
                 for table in tables:
                     if 'табл' not in all_text[table['page']]:
                         found_errors.append({
-                            'error_desc': errors_desc[19]['description'] + f'\n- таблица {table["table_count"]}',
+                            'error_desc': errors_desc[19]['description'] + f'\n- таблица {table["table_count"]}.',
                             'error_page': table['page'],
                             'error_text': None,
                         })
@@ -577,7 +577,7 @@ class JSONValidator:
                                 break
 
                     missing_headers.append({
-                        'error_desc': 'Missing required header',
+                        'error_desc': 'Отсутсвует заголовок.',
                         'error_page': contents_page if contents_page else page_number,
                         'error_text': header
                     })
@@ -599,20 +599,20 @@ class JSONValidator:
 
                     if 'TextAlign' in element['attributes'] and element['attributes']['TextAlign'].lower() != self.CURRENT_STANDARD_JSON['report_format']['titles']['position'].lower():
                         errors.append({
-                            'error_desc': 'Title not centered',
+                            'error_desc': 'Заголовок не по центру.',
                             'error_page': page_number,
                             'error_text': header_text
                         })
                     elif 'TextAlign' not in element['attributes']:
                         errors.append({
-                            'error_desc': 'Title not centered',
+                            'error_desc': 'Заголовок не по центру.',
                             'error_page': page_number,
                             'error_text': header_text
                         })
 
                     if header_text.endswith('.') and not self.CURRENT_STANDARD_JSON['report_format']['titles']['end_with_period']:
                         errors.append({
-                            'error_desc': 'Header ends with a dot',
+                            'error_desc': 'Заголовок заканчивается точкой.',
                             'error_page': page_number,
                             'error_text': header_text
                         })
@@ -620,7 +620,7 @@ class JSONValidator:
                     if header_text.upper() in required_headers:
                         if not header_text.isupper() and self.CURRENT_STANDARD_JSON['report_format']['titles']['capitalization'] == "all":
                             errors.append({
-                                'error_desc': 'Header not fully uppercase',
+                                'error_desc': 'Не все буквы в заголовке - заглавные.',
                                 'error_page': page_number,
                                 'error_text': header_text
                             })
@@ -631,20 +631,20 @@ class JSONValidator:
                             if first_word[0].isdigit() and len(first_word) > 1:
                                 if not words[1][0].isupper() and self.CURRENT_STANDARD_JSON['report_format']['titles']['sections_and_subsections']['capitalize_first_letter'] == True:
                                     errors.append({
-                                        'error_desc': 'Header not capitalized properly',
+                                        'error_desc': 'Заголовок написан неправильно.',
                                         'error_page': page_number,
                                         'error_text': header_text
                                     })
                             elif not first_word[0].isupper() and self.CURRENT_STANDARD_JSON['report_format']['titles']['sections_and_subsections']['capitalize_first_letter'] == True:
                                 errors.append({
-                                    'error_desc': 'Header not capitalized properly',
+                                    'error_desc': 'Заголовок написан неправильно.',
                                     'error_page': page_number,
                                     'error_text': header_text
                                 })
 
                     if '_' in header_text:
                         errors.append({
-                            'error_desc': 'Header contains underscore',
+                            'error_desc': 'Заголовок содержит подчеркивание.',
                             'error_page': page_number,
                             'error_text': header_text
                         })
@@ -652,13 +652,13 @@ class JSONValidator:
                     font = element.get('Font', {})
                     if "TimesNewRomanPS-BoldMT" not in font.get('name', '') and "family_name" in font and self.CURRENT_STANDARD_JSON['report_format']['font']['type'] not in font["family_name"]:
                         errors.append({
-                            'error_desc': 'Header not in bold font',
+                            'error_desc': 'Заголовок не жирным шрифтом.',
                             'error_page': page_number,
                             'error_text': header_text
                         })
                     elif "family_name" in font and "family_name" in font and self.CURRENT_STANDARD_JSON['report_format']['font']['type'] not in font["family_name"]:
                         errors.append({
-                            'error_desc': 'Header in wrong font',
+                            'error_desc': 'Загоровок неверным шрифтом.',
                             'error_page': page_number,
                             'error_text': header_text
                         })
@@ -669,7 +669,7 @@ class JSONValidator:
 
                     if not (expected_size - allowed_deviation <= actual_size <= expected_size + allowed_deviation):
                         errors.append({
-                            'error_desc': 'Header has incorrect font size',
+                            'error_desc': 'Неверный размер шрифта заголовка.',
                             'error_page': page_number,
                             'error_text': header_text
                         })
@@ -703,13 +703,13 @@ class JSONValidator:
 
                 if 'прилож' in header_text.lower() and 'приложение' not in header_text.lower():
                     errors.append({
-                        'error_desc': 'Appendix header is written incorrectly',
+                        'error_desc': 'Приложение написано неверно.',
                         'error_page': page_number,
                         'error_text': header_text
                     })
                 elif element['title_format']['word'] != header_text:
                     errors.append({
-                        'error_desc': 'Appendix header case is incorrect',
+                        'error_desc': 'Неправильный формат приложения.',
                         'error_page': page_number,
                         'error_text': header_text
                     })
@@ -719,13 +719,13 @@ class JSONValidator:
                     letter = match.group(1).upper()
                     if letter not in allowed_letters:
                         errors.append({
-                            'error_desc': f'Appendix header contains invalid letter: {letter}',
+                            'error_desc': f'Неверная буква в приложении: {letter}.',
                             'error_page': page_number,
                             'error_text': header_text
                         })
                 else:
                     errors.append({
-                        'error_desc': 'Appendix header format incorrect',
+                        'error_desc': 'Неверный формат приложения.',
                         'error_page': page_number,
                         'error_text': header_text
                     })
@@ -777,16 +777,16 @@ class JSONValidator:
                 else:
                     if "TextAllign" in element['attributes']:
                         if element['attributes']['TextAllign'] != position[1]:
-                            error_message.append({'error_desc': 'Неправильное расположение по ширине',
+                            error_message.append({'error_desc': 'Неправильное расположение по ширине.',
                                                   'error_page': element['Page'] + 1,
                                                   'error_text': element['Text']})
                     else:
-                        error_message.append({'error_desc': 'Неправильное расположение по ширине',
+                        error_message.append({'error_desc': 'Неправильное расположение по ширине.',
                                               'error_page': element['Page'] + 1,
                                               'error_text': element['Text']})
 
             else:
-                error_message.append({'error_desc': 'Нет нумерации страницы',
+                error_message.append({'error_desc': 'Нет нумерации страницы.',
                                       'error_page': element['Page'] + 1,
                                       'error_text': None})
         return error_message
