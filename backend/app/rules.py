@@ -87,7 +87,6 @@ class JSONValidator:
             if prev_page != element['page']:
                 prev_page = element['page']
                 if abs(element['bounds'][1] - margins['top']) < 1:
-                    print(element['bounds'][1], margins['top'])
                     found_errors.append({
                         'error_desc': errors_desc[0]['description'],
                         'error_page': element['page'],
@@ -95,7 +94,6 @@ class JSONValidator:
                     })
                 if prev_page >= 0:
                     if bounds[count-1]['bounds'][3] - margins['bottom'] < -1:
-                        print(bounds[count-1]['bounds'][3], margins['bottom'])
                         found_errors.append({
                             'error_desc': errors_desc[0]['description'],
                             'error_page': element['page'],
@@ -134,7 +132,6 @@ class JSONValidator:
             part = elements[i]
             match = pattern.search(part['Path'])
             if match and 'Text' not in part:
-                print(part)
                 # Проверяем на IndexError
                 if i > 0 and i-1 < len(elements):
                     # Ищем ссылку в тексте на изображение
@@ -874,7 +871,10 @@ class JSONValidator:
             eval = send_evaluation_request(header['title'], header['text'])
             if eval.isdigit():
                 if int(eval) < 50:
-                    found_errors.append(errors_desc[8]['description'] + f'\n- заголовок {header["title"]}')
+                    temp_error = {'error_desc': errors_desc[8]['description'],
+                                  'error_page': None,
+                                  'error_text': header["title"]}
+                    found_errors.append(temp_error)
         return found_errors
 
 
