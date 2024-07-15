@@ -333,19 +333,19 @@ class JSONValidator:
                 numb_set = settings['numbering']
                 if numb_set['continuous'] and '.' not in words[1] and not (words[1].isdigit() and int(words[1]) != table['table_count']):
                     found_errors.append({
-                        'error_desc': errors_desc[21]['description'] + f'\n- Таблица {table["table_count"]}.',
+                        'error_desc': errors_desc[39]['description'] + f'\n- Таблица {table["table_count"]}.',
                         'error_page': table['page'],
                         'error_text': None,
                     })
                 elif not numb_set['continuous'] and '.' not in words[1]:
                     found_errors.append({
-                        'error_desc': errors_desc[21]['description'] + f'\n- Таблица {table["table_count"]}.',
+                        'error_desc': errors_desc[39]['description'] + f'\n- Таблица {table["table_count"]}.',
                         'error_page': table['page'],
                         'error_text': None,
                     })
                 if numb_set['per_section'] and '.' not in words[1] and not numb_set['continuous']:
                     found_errors.append({
-                        'error_desc': errors_desc[21]['description'] + f'\n- Таблица {table["table_count"]}.',
+                        'error_desc': errors_desc[39]['description'] + f'\n- Таблица {table["table_count"]}.',
                         'error_page': table['page'],
                         'error_text': None,
                     })
@@ -354,7 +354,7 @@ class JSONValidator:
                     for part in parts:
                         if not part.isdigit():
                             found_errors.append({
-                                'error_desc': errors_desc[21]['description'] + f'\n- Таблица {table["table_count"]}.',
+                                'error_desc': errors_desc[39]['description'] + f'\n- Таблица {table["table_count"]}.',
                                 'error_page': table['page'],
                                 'error_text': None,
                             })
