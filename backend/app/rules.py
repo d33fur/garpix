@@ -170,7 +170,7 @@ class JSONValidator:
 
                     if not (next_part_align == standard['title_position'] and standard['FontType'] in next_part_font and next_part_text_size == standard['FontSize']):
                         tmp = {
-                            'error_desc': 'Проблема с шрифтом или позиционированием текста после изображением.',
+                            'error_desc': 'Проблема с шрифтом или позиционированием текста после изображения.',
                             'error_page': next_part['Page']+1,
                             'error_text': next_part['Text'],
                         }
@@ -215,11 +215,6 @@ class JSONValidator:
                         'Page': element['Page'] + 1
                     }
                     headers.append(header)
-
-            # # для проверки
-            # print("H1 Headers:")
-            # for header in headers:
-            #     print(header)
 
             def check_headers_on_different_pages(headers, errors):
                 pages_with_headers = set()
@@ -276,12 +271,6 @@ class JSONValidator:
                         current_entry['Page'] = header_page
                         header_entries.append(current_entry)
                         current_entry = {}
-
-            # # для проверки
-            # print("\nHeader Entries:")
-            # for entry in header_entries:
-            #     print(entry)
-
 
             def check_headers_with_entries(headers, headers_entries, errors):
                 current_error = {}
@@ -551,7 +540,6 @@ class JSONValidator:
             found_headers = []
             missing_headers = []
 
-            # Check for found headers and determine the contents page
             contents_page = None
             for element in elements:
                 match = pattern.search(element['Path'])
@@ -559,18 +547,17 @@ class JSONValidator:
                     header_text = element['Text'].strip()
                     found_headers.append(header_text)
                     if header_text.lower() == "содержание":
-                        contents_page = element['Page'] + 1  # Adjust page number to start from 1
+                        contents_page = element['Page'] + 1
 
-            # Check for missing headers
+            # Проверка наличия обязательных глав
             for header in required_headers:
                 if header.lower() not in [found_header.lower() for found_header in found_headers]:
-                    # Find the first occurrence of the header in the elements list
                     page_number = None
                     for element in elements:
                         if 'Text' in element and element['Path'].startswith("//Document/H1"):
                             header_text = element['Text'].strip()
                             if header_text.lower() == header.lower():
-                                page_number = element['Page'] + 1  # Adjust page number to start from 1
+                                page_number = element['Page'] + 1
                                 break
 
                     missing_headers.append({
@@ -591,7 +578,7 @@ class JSONValidator:
             for element in elements:
                 if 'Text' in element and element['Path'].startswith("//Document/H1"):
                     header_text = element['Text'].strip()
-                    page_number = element['Page'] + 1  # Adjust page number to start from 1
+                    page_number = element['Page'] + 1 
                     has_paragraph_indent = False
 
                     if 'TextAlign' in element['attributes'] and element['attributes']['TextAlign'].lower() != self.CURRENT_STANDARD_JSON['report_format']['titles']['position'].lower():
@@ -617,7 +604,7 @@ class JSONValidator:
                     if header_text.upper() in required_headers:
                         if not header_text.isupper() and self.CURRENT_STANDARD_JSON['report_format']['titles']['capitalization'] == "all":
                             errors.append({
-                                'error_desc': 'Не все буквы в заголовке - заглавные.',
+                                'error_desc': 'Заголовок написан не прописными буквами.',
                                 'error_page': page_number,
                                 'error_text': header_text
                             })
@@ -628,13 +615,13 @@ class JSONValidator:
                             if first_word[0].isdigit() and len(first_word) > 1:
                                 if not words[1][0].isupper() and self.CURRENT_STANDARD_JSON['report_format']['titles']['sections_and_subsections']['capitalize_first_letter'] == True:
                                     errors.append({
-                                        'error_desc': 'Заголовок написан неправильно.',
+                                        'error_desc': 'Заголовок начинается не с прописной буквы.',
                                         'error_page': page_number,
                                         'error_text': header_text
                                     })
                             elif not first_word[0].isupper() and self.CURRENT_STANDARD_JSON['report_format']['titles']['sections_and_subsections']['capitalize_first_letter'] == True:
                                 errors.append({
-                                    'error_desc': 'Заголовок написан неправильно.',
+                                    'error_desc': 'Заголовок начинается не с прописной буквы.',
                                     'error_page': page_number,
                                     'error_text': header_text
                                 })
@@ -649,13 +636,13 @@ class JSONValidator:
                     font = element.get('Font', {})
                     if "TimesNewRomanPS-BoldMT" not in font.get('name', '') and "family_name" in font and self.CURRENT_STANDARD_JSON['report_format']['font']['type'] not in font["family_name"]:
                         errors.append({
-                            'error_desc': 'Заголовок не жирным шрифтом.',
+                            'error_desc': 'Заголовок не выделен полужирным шрифтом.',
                             'error_page': page_number,
                             'error_text': header_text
                         })
                     elif "family_name" in font and "family_name" in font and self.CURRENT_STANDARD_JSON['report_format']['font']['type'] not in font["family_name"]:
                         errors.append({
-                            'error_desc': 'Загоровок неверным шрифтом.',
+                            'error_desc': 'Неверный тип шрифта заголовка.',
                             'error_page': page_number,
                             'error_text': header_text
                         })
