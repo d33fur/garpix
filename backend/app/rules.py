@@ -323,7 +323,7 @@ class JSONValidator:
 
                 if referenced_word not in words[0]:
                     found_errors.append({
-                        'error_desc': errors_desc[21]['description'] + f'\n- Таблица {table["table_count"]}.',
+                        'error_desc': errors_desc[37]['description'] + f'\n- Таблица {table["table_count"]}.',
                         'error_page': table['page'],
                         'error_text': None,
                     })
@@ -387,21 +387,21 @@ class JSONValidator:
                 for table in tables:
                     if 'Text' not in table['prev_element']:
                         found_errors.append({
-                            'error_desc': errors_desc[20]['description'] + f'\n- Таблица {table["table_count"]}.',
+                            'error_desc': errors_desc[36]['description'] + f'\n- Таблица {table["table_count"]}.',
                             'error_page': table['page'],
                             'error_text': None,
                         })
                         continue
                     if 'left' in settings['title_position'] and table['prev_element']['Bounds'][0] > 100:
                         found_errors.append({
-                            'error_desc': errors_desc[20]['description'] + f'\n- Таблица {table["table_count"]}.',
+                            'error_desc': errors_desc[36]['description'] + f'\n- Таблица {table["table_count"]}.',
                             'error_page': table['page'],
                             'error_text': None,
                         })
                         continue
                     if 'right' in settings['title_position'] and table['prev_element']['Bounds'][0] < 100:
                         found_errors.append({
-                            'error_desc': errors_desc[20]['description'] + f'\n- Таблица {table["table_count"]}.',
+                            'error_desc': errors_desc[36]['description'] + f'\n- Таблица {table["table_count"]}.',
                             'error_page': table['page'],
                             'error_text': None,
                         })
@@ -412,21 +412,21 @@ class JSONValidator:
                 for table in tables:
                     if 'Text' not in table['next_element']:
                         found_errors.append({
-                            'error_desc': errors_desc[20]['description'] + f'\n- Таблица {table["table_count"]}.',
+                            'error_desc': errors_desc[36]['description'] + f'\n- Таблица {table["table_count"]}.',
                             'error_page': table['page'],
                             'error_text': None,
                         })
                         continue
                     if 'left' in settings['title_position'] and table['next_element']['Bounds'][0] > 100:
                         found_errors.append({
-                            'error_desc': errors_desc[20]['description'] + f'\n- Таблица {table["table_count"]}.',
+                            'error_desc': errors_desc[36]['description'] + f'\n- Таблица {table["table_count"]}.',
                             'error_page': table['page'],
                             'error_text': None,
                         })
                         continue
                     if 'right' in settings['title_position'] and table['next_element']['Bounds'][0] < 100:
                         found_errors.append({
-                            'error_desc': errors_desc[20]['description'] + f'\n- Таблица {table["table_count"]}.',
+                            'error_desc': errors_desc[36]['description'] + f'\n- Таблица {table["table_count"]}.',
                             'error_page': table['page'],
                             'error_text': None,
                         })
@@ -437,7 +437,7 @@ class JSONValidator:
             for table in tables:
                 if "//Document/Table" in table['next_element']['Path']:
                     found_errors.append({
-                        'error_desc': errors_desc[18]['description'] + f'\n- Таблица {table["table_count"]}.',
+                        'error_desc': errors_desc[36]['description'] + f'\n- Таблица {table["table_count"]}.',
                         'error_page': table['page'],
                         'error_text': None,
                     })
@@ -446,7 +446,7 @@ class JSONValidator:
                 for table in tables:
                     if "//Document/Table" in table['next_element']['Path'] and table['page'] != table['next_element']['page']:
                         found_errors.append({
-                            'error_desc': errors_desc[0]['description'] + f'\n- Таблица {table["table_count"]}.',
+                            'error_desc': errors_desc[38]['description'] + f'\n- Таблица {table["table_count"]}.',
                             'error_page': table['page'],
                             'error_text': None,
                         })
