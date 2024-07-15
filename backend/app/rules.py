@@ -323,7 +323,7 @@ class JSONValidator:
 
                 if referenced_word not in words[0]:
                     found_errors.append({
-                        'error_desc': errors_desc[37]['description'] + f'\n- Таблица {table["table_count"]}.',
+                        'error_desc': errors_desc[20]['description'] + f'\n- Таблица {table["table_count"]}.',
                         'error_page': table['page'],
                         'error_text': None,
                     })
@@ -431,7 +431,7 @@ class JSONValidator:
                             'error_text': None,
                         })
                         continue
-                    title = str(table['prev_element']['Text']) if table['next_element']['Text'] else ''
+                    title = str(table['prev_element']['Text']) if table['prev_element']['Text'] else ''
                     check_title(title, found_errors, table)
 
             for table in tables:
